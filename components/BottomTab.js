@@ -1,11 +1,12 @@
-import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View, StyleSheet, Animated, Dimensions} from 'react-native';
 import {Button} from 'react-native-elements';
 import {Sizes} from './const';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const totalWidth = Sizes.width;
 const BottomTab = ({state, descriptors, navigation}) => {
+  console.log(state);
   // bottom tab icons
   const BottomIcon = ({lable, index, route, totalTabs}) => {
     let icon = '';
@@ -13,7 +14,7 @@ const BottomTab = ({state, descriptors, navigation}) => {
       case 'Home':
         icon = 'home';
         break;
-      case 'Member':
+      case 'Members':
         icon = 'users';
         break;
       case 'Circles':
@@ -42,9 +43,7 @@ const BottomTab = ({state, descriptors, navigation}) => {
       <Button
         onPress={onPress}
         buttonStyle={{
-          ...(isFocused
-            ? styles.tabIconbuttonStyleActive
-            : styles.tabIconbuttonStyle),
+          ...styles.tabIconbuttonStyle,
           width: totalWidth / totalTabs,
         }}
         title={lable}
@@ -54,14 +53,37 @@ const BottomTab = ({state, descriptors, navigation}) => {
       />
     );
   };
-  console.log(state, descriptors);
+  const [translateValue] = useState(new Animated.Value(0));
+
+  const tabWidth = totalWidth / state.routes.length;
+  const animateSlider = useCallback(
+    index => {
+      Animated.spring(translateValue, {
+        toValue: index * tabWidth,
+        velocity: 10,
+        useNativeDriver: true,
+      }).start();
+    },
+    [tabWidth, translateValue],
+  );
+  useEffect(() => {
+    animateSlider(state.index);
+  }, [animateSlider, state.index]);
   return (
     <View style={styles.tabContainer}>
+      <Animated.View
+        style={[
+          styles.slider,
+          {
+            transform: [{translateX: translateValue}],
+            width: tabWidth,
+          },
+        ]}
+      />
       <View
         style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
-          flex: 1,
         }}>
         {state.routes.map((route, index) => (
           <BottomIcon
@@ -85,78 +107,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'column',
-    flex: 1,
-  },
-  tabIconbuttonStyleActive: {
-    justifyContent: 'center',
-    backgroundColor: '#4162cc',
-    alignItems: 'center',
-    flexDirection: 'column',
-    flex: 1,
-    borderBottomColor: 'white',
-    borderBottomWidth: 1,
   },
   tabContainer: {
     height: Sizes.height * 0.08,
     width: totalWidth,
-    shadowOpacity: 0.1,
-    shadowRadius: 4.0,
     backgroundColor: '#4162cc',
-    elevation: 10,
     position: 'absolute',
     bottom: 0,
-    // borderTopRightRadius: 50,
-    // borderTopLeftRadius: 50,
     shadowOffset: {
       width: 0,
       height: -1,
     },
   },
+  slider: {
+    height: 1,
+    zIndex: 1,
+    position: 'absolute',
+    bottom: 2,
+    left: 10,
+    backgroundColor: 'white',
+    borderRadius: 10,
+  },
 });
-
-// const onPress = index => {
-//   console.log('tab navigation');
-//   let route = state.routes[index];
-//   const event = navigation.emit({
-//     type: 'tabPress',
-//     target: route.key,
-//   });
-
-//   if (!event.defaultPrevented) {
-//     navigation.navigate(route.name);
-//   }
-// };
-// return (
-//   <Tab
-//     onChange={index => {
-//       console.log('object', state.routes[index]);
-//       onPress(index);
-//     }}>
-//     {state.routes.map((route, i) => {
-//       return (
-//         <Tab.Item
-//           title={route.name}
-//           key={i}
-//           active={state.index === i}
-//           titleStyle={{
-//             color: 'white',
-//             fontSize: 12,
-//           }}
-//           buttonStyle={{
-//             borderBottomColor: '#fff',
-//           }}
-//           containerStyle={{
-//             borderColor: 'white',
-//             backgroundColor: '#4162cc',
-//             // backgroundColor: '#ca71eb',
-//           }}
-//           icon={{
-//             name: 'home',
-//             size: 30,
-//             color: 'white',
-//           }}
-//         />
-//       );
-//     })}
-//   </Tab>
-// );

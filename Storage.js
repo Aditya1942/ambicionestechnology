@@ -17,3 +17,21 @@ export const getUserData = async () => {
     throw e;
   }
 };
+export const setUserInfo = async value => {
+  try {
+    const jsonValue = JSON.stringify(value);
+    await AsyncStorage.setItem('@userData', jsonValue);
+  } catch (e) {
+    // saving error
+    throw e;
+  }
+};
+export const getUserInfo = async () => {
+  try {
+    const jsonValue = await AsyncStorage.getItem('@userData');
+    return jsonValue != null ? JSON.parse(jsonValue) : null;
+  } catch (e) {
+    // error reading value
+    throw e;
+  }
+};

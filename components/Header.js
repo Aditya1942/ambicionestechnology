@@ -5,8 +5,9 @@ import {Appbar} from 'react-native-paper';
 import {Text, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {Sizes} from './const';
 
-const CustomHeader = ({lable}) => {
+const CustomHeader = ({label, headerHeight = Sizes.ITEM_HEIGHT * 0.43}) => {
   const [isHome, setisHome] = React.useState(true);
   const Logout = () => {
     console.log(' Logout');
@@ -39,7 +40,7 @@ const CustomHeader = ({lable}) => {
             }}
           />
         )}
-        <Text style={{color: 'white', fontSize: 20}}>{lable}</Text>
+        <Text style={{color: 'white', fontSize: 20}}>{label}</Text>
       </View>
     );
   };
@@ -47,10 +48,10 @@ const CustomHeader = ({lable}) => {
   useFocusEffect(
     React.useCallback(() => {
       console.log(navigation);
-      if (lable !== 'Dashboard' && navigation.canGoBack()) {
+      if (label !== 'Dashboard' && navigation.canGoBack()) {
         setisHome(false);
       }
-    }, [lable, navigation]),
+    }, [label, navigation]),
   );
 
   return (
@@ -73,9 +74,11 @@ const CustomHeader = ({lable}) => {
         />
       }
       leftComponent={<HeaderLeftComponent />}
-      leftContainerStyle={{flex: 2}}
+      leftContainerStyle={{flex: 4}}
       containerStyle={{
+        height: headerHeight,
         backgroundColor: '#3D6DCC',
+        alignItems: 'flex-start',
         justifyContent: 'space-around',
       }}
     />

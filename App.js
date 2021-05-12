@@ -27,7 +27,7 @@ const BottomTabScreen = () => {
   return (
     <MainTab.Navigator tabBar={props => <BottomTab {...props} />}>
       <MainTab.Screen name="Home" component={Home} />
-      <MainTab.Screen name="Member" component={Member} />
+      <MainTab.Screen name="Members" component={Member} />
       <MainTab.Screen name="Circles" component={Circles} />
       <MainTab.Screen name="Profile" component={Profile} />
     </MainTab.Navigator>
@@ -61,7 +61,7 @@ const Main = () => {
     <Stack.Navigator screenOptions={{headerShown: false}}>
       {LoggedIn ? (
         <>
-          <Stack.Screen name="Home" component={CustomDrawer} />
+          <Stack.Screen name="CustomDrawer" component={CustomDrawer} />
         </>
       ) : (
         <>

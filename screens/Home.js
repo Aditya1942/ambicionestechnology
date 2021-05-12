@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import {Sizes} from '../components/const';
 import CustomHeader from '../components/Header';
-import {getUserData} from '../Storage';
+import {getUserData, setUserInfo} from '../Storage';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 
 const TotalBalanceCard = () => {
@@ -133,57 +133,75 @@ const Cards = () => {
   );
 };
 
-const Home = ({navigation}) => {
-  const [UserData, setUserData] = useState([]);
-  useEffect(() => {
-    getUserData().then(data => {
-      console.log(data);
-      if (data) {
-        setUserData(data);
-      }
-    });
-  }, []);
-  const Transactions = ({price, title, subtitle, img}) => {
-    return (
-      <View
-        style={{
-          width: Sizes.width * 0.9,
-          paddingVertical: 30,
-          paddingHorizontal: 20,
-          borderRadius: 20,
-          elevation: 10,
-          marginBottom: 15,
-          backgroundColor: '#fff',
-        }}>
-        <View style={{flexDirection: 'row'}}>
-          <View style={{flex: 0.2, justifyContent: 'center'}}>
-            <Text>
-              <Icon name={img} size={30} />
-            </Text>
-          </View>
-          <View style={{flex: 0.6, justifyContent: 'center'}}>
-            <Text style={{fontSize: 18, fontWeight: '600', color: '#27173e'}}>
-              {title}
-            </Text>
-            <Text style={{color: '#958d9e', fontSize: 12}}>{subtitle}</Text>
-          </View>
-          <View style={{flex: 0.2, justifyContent: 'center'}}>
-            <Text
-              style={{
-                color: price < 0 ? '#ff396f' : '#27173e',
-                fontWeight: '700',
-                fontSize: 15,
-              }}>
-              {price > 0 ? '+' : '-'}$ {price}
-            </Text>
-          </View>
+const Transactions = ({price, title, subtitle, img}) => {
+  return (
+    <View
+      style={{
+        width: Sizes.width * 0.9,
+        paddingVertical: 30,
+        paddingHorizontal: 20,
+        borderRadius: 20,
+        elevation: 10,
+        marginBottom: 15,
+        backgroundColor: '#fff',
+      }}>
+      <View style={{flexDirection: 'row'}}>
+        <View style={{flex: 0.2, justifyContent: 'center'}}>
+          <Text>
+            <Icon name={img} size={30} />
+          </Text>
+        </View>
+        <View style={{flex: 0.6, justifyContent: 'center'}}>
+          <Text style={{fontSize: 18, fontWeight: '600', color: '#27173e'}}>
+            {title}
+          </Text>
+          <Text style={{color: '#958d9e', fontSize: 12}}>{subtitle}</Text>
+        </View>
+        <View style={{flex: 0.2, justifyContent: 'center'}}>
+          <Text
+            style={{
+              color: price < 0 ? '#ff396f' : '#27173e',
+              fontWeight: '700',
+              fontSize: 15,
+            }}>
+            {price > 0 ? '+' : '-'}$ {price}
+          </Text>
         </View>
       </View>
-    );
+    </View>
+  );
+};
+const Home = ({navigation}) => {
+  const getUserInfo = () => {
+    getUserData()
+      .then(data => {
+        console.log('userInfo From Home page', data);
+
+        if (data) {
+          fetch('http://omba-app.ambicionestechnology.com/api/users/admin', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${data.token}`,
+              // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          })
+            .then(response => response.json())
+            .then(userData => {
+              console.log('userInfo From Home page', userData);
+              setUserInfo(userData);
+            })
+            .catch(err => console.log(err));
+        }
+      })
+      .catch(err => console.log(err));
   };
+  useEffect(() => {
+    getUserInfo();
+  }, []);
   return (
     <SafeAreaView>
-      <CustomHeader lable="Dashboard" />
+      <CustomHeader label="Dashboard" />
       <View style={{backgroundColor: '#f0f0f0', position: 'relative'}}>
         <ScrollView style={{zIndex: 5}}>
           <View
