@@ -16,6 +16,7 @@ target 'ambicionestechnology' do
 
   pod 'react-native-pager-view', :path => '../node_modules/react-native-pager-view'
 
+
   target 'ambicionestechnologyTests' do
     inherit! :complete
     # Pods for testing

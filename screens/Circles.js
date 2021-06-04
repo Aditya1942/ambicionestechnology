@@ -1,29 +1,67 @@
-import React, {useEffect, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {SafeAreaView, ScrollView, Text, View} from 'react-native';
-import {Avatar, Card, Input, ListItem} from 'react-native-elements';
-import {Button, DataTable, TextInput} from 'react-native-paper';
+import {Avatar, ListItem} from 'react-native-elements';
+import {Button, TextInput} from 'react-native-paper';
+import DropdownAlert from 'react-native-dropdownalert';
 import {Sizes} from '../components/const';
 import CustomHeader from '../components/Header';
+import axios from '../axios';
+import {getUserData} from '../Storage';
+import {useFocusEffect} from '@react-navigation/core';
 
 const Circles = () => {
   const [CircleName, setCircleName] = useState('');
-  const [Circles, setCircles] = useState([]);
-  useEffect(() => {
-    setCircles([
-      {id: 1, name: 'Circle 1 '},
-      {id: 2, name: 'Circle 2 '},
-      {id: 3, name: 'Circle 3 '},
-      {id: 4, name: 'Circle 4 '},
-      {id: 1, name: 'Circle 1 '},
-      {id: 2, name: 'Circle 2 '},
-      {id: 3, name: 'Circle 3 '},
-      {id: 4, name: 'Circle 4 '},
-      {id: 1, name: 'Circle 1 '},
-      {id: 2, name: 'Circle 2 '},
-      {id: 3, name: 'Circle 3 '},
-      {id: 4, name: 'Circle 4 '},
-    ]);
-  }, []);
+  const [allCircles, setCircles] = useState([]);
+  const [userData, setUserData] = useState([]);
+  const [Update, setUpdate] = useState('');
+  useFocusEffect(
+    React.useCallback(() => {
+      getUserData().then(userdata => {
+        setUserData(userdata);
+        axios({
+          url: '/users/GetCircles/' + userdata.id,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: 'Bearer ' + userdata.token,
+          },
+        }).then(data => {
+          setCircles(data.data);
+          console.log(data, Update);
+        });
+      });
+    }, [Update]),
+  );
+
+  const addNewCircle = () => {
+    axios({
+      url: '/users/AddCircle',
+      method: 'POST',
+      data: {name: CircleName, userId: userData.id},
+      headers: {
+        'Content-Type': 'application/json',
+        authorization: 'Bearer ' + userData.token,
+      },
+    }).then(data => {
+      console.log(data);
+      if (data.status === 200) {
+        dropDownAlertRef.current.alertWithType(
+          'success',
+          'Success',
+          'New circle Added',
+        );
+      } else if (data.status === 400) {
+        dropDownAlertRef.current.alertWithType(
+          'warn',
+          '',
+          'Circle name already used.',
+        );
+      }
+      setCircleName('');
+      setUpdate(data);
+    });
+  };
+  const dropDownAlertRef = useRef();
   return (
     <SafeAreaView>
       <CustomHeader label="Circle" />
@@ -50,7 +88,7 @@ const Circles = () => {
             onChangeText={text => setCircleName(text)}
           />
           <Button
-            onPress={() => console.log('Pressed')}
+            onPress={addNewCircle}
             mode="contained"
             style={{
               marginHorizontal: 70,
@@ -60,7 +98,7 @@ const Circles = () => {
           </Button>
         </View>
         <ScrollView style={{width: Sizes.width, marginTop: 5}}>
-          {Circles.map((c, i) => (
+          {allCircles.map((c, i) => (
             <ListItem key={i} bottomDivider>
               <Avatar
                 rounded
@@ -101,6 +139,8 @@ const Circles = () => {
         </ScrollView>
         <View style={{height: 150}} />
       </View>
+
+      <DropdownAlert ref={dropDownAlertRef} />
     </SafeAreaView>
   );
 };

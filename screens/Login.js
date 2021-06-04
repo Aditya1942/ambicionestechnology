@@ -12,7 +12,7 @@ import {Button} from 'react-native-elements';
 import {setUserData} from '../Storage';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {Sizes} from '../components/const';
-
+import axios from '../axios';
 const Login = ({navigation}) => {
   Sizes;
   const {width} = Sizes;
@@ -27,20 +27,16 @@ const Login = ({navigation}) => {
     if (UserName.length > 0 && Password.length > 0) {
       setLoading(true);
     }
-    fetch('http://omba-app.ambicionestechnology.com/api/account/login', {
-      body: JSON.stringify(formData),
+    axios({
+      url: '/account/login',
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // 'Content-Type': 'application/x-www-form-urlencoded',
-      },
+
+      data: formData,
+      headers: {'Content-Type': 'application/json'},
     })
       .then(response => {
-        console.log('response', response);
-        return response.json();
-      })
-      .then(responseJson => {
         // Some Code if fetching is successful
+        let responseJson = response.data;
         console.log(responseJson);
         setLoading(false);
         if (responseJson.status) {

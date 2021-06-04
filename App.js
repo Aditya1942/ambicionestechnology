@@ -37,7 +37,7 @@ const BottomTabScreen = () => {
 const CustomDrawer = () => {
   return (
     <Drawer.Navigator
-      drawerPosition={'right'}
+      drawerPosition={'left'}
       drawerContent={props => <DrawerScreen {...props} />}
       drawerStyle={{backgroundColor: '#fff', width: Sizes.width * 0.8}}>
       <Drawer.Screen name="Main" component={BottomTabScreen} />

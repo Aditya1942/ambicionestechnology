@@ -26,6 +26,9 @@ const CustomHeader = ({label, headerHeight = Sizes.ITEM_HEIGHT * 0.43}) => {
               backgroundColor: 'transparent',
               alignSelf: 'center',
             }}
+            onPress={() => {
+              navigation.navigate('Profile');
+            }}
           />
         ) : (
           <Button

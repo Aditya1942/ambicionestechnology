@@ -1,5 +1,5 @@
 import {createStackNavigator} from '@react-navigation/stack';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   Animated,
   SafeAreaView,
@@ -13,11 +13,16 @@ import {
 import {Sizes} from '../components/const';
 import CustomHeader from '../components/Header';
 import AddMember from './AddMember';
+import axios from '../axios';
+import {getUserData} from '../Storage';
+import {useFocusEffect} from '@react-navigation/core';
 
 const Stack = createStackNavigator();
 const AllMembers = () => {
-  const [MemberData, setMemberData] = useState([{title: 'LOL', key: 0}]);
-  const Card = ({title}) => {
+  const [MemberData, setMemberData] = useState([]);
+  const [userData, setUserData] = useState([]);
+
+  const Card = ({index, title, circle, mobile, status}) => {
     const TextStyle = {
       marginLeft: 10,
       color: '#6c6573',
@@ -34,26 +39,46 @@ const AllMembers = () => {
           borderRadius: 10,
         }}>
         <Text style={{fontSize: 20, fontWeight: '700', marginBottom: 10}}>
-          {title}) orktest okktest
+          {index}) {title}
         </Text>
-        <Text style={TextStyle}>Circle: 26_SandyPrmr</Text>
-        <Text style={TextStyle}>Mobile: 777777777</Text>
-        <Text style={TextStyle}>Status: Pending</Text>
+        <Text style={TextStyle}>Circle: {circle}</Text>
+        <Text style={TextStyle}>Mobile: {mobile}</Text>
+        <Text style={TextStyle}>Status: {status}</Text>
       </View>
     );
   };
+  useFocusEffect(
+    React.useCallback(() => {
+      getUserData().then(userdata => {
+        console.log(userdata);
+        setUserData(userdata);
+        axios({
+          url: '/users/GetMembers/' + userdata.id,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: 'Bearer ' + userdata.token,
+          },
+        }).then(data => {
+          setMemberData(data.data);
+          console.log(data);
+        });
+      });
+    }, []),
+  );
+
   return (
     <ScrollView style={{padding: 20}}>
-      <Card title={1} />
-      <Card title={2} />
-      <Card title={3} />
-      <Card title={4} />
-      <Card title={5} />
-      <Card title={6} />
-      <Card title={7} />
-      <Card title={8} />
-      <Card title={9} />
-      <Card title={10} />
+      {MemberData.map((Member, i) => (
+        <Card
+          key={i}
+          index={i + 1}
+          title={Member.firstName + ' ' + Member.lastName}
+          circle={Member.circleName}
+          mobile={Member.mobile}
+          status={'pending'}
+        />
+      ))}
 
       <View style={{height: 200}} />
     </ScrollView>
