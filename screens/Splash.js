@@ -18,7 +18,7 @@ const Splash = ({navigation}) => {
     });
     setTimeout(() => {
       navigation.replace('HomeScreen', {isLoggedin: LoggedIn});
-    }, 11000); //<-- Time until it jumps to "MainView"
+    }, 12000); //<-- Time until it jumps to "MainView"
   }, [navigation]);
 
   return (
@@ -40,7 +40,7 @@ const Splash = ({navigation}) => {
           right: 0,
           bottom: 0,
         }}
-        muted={true}
+        muted={false}
         repeat={true}
         resizeMode="contain"
       />

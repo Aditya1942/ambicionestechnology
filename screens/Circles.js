@@ -8,12 +8,17 @@ import CustomHeader from '../components/Header';
 import axios from '../axios';
 import {getUserData} from '../Storage';
 import {useFocusEffect} from '@react-navigation/core';
+import Modal from 'react-native-modal';
 
 const Circles = () => {
   const [CircleName, setCircleName] = useState('');
   const [allCircles, setCircles] = useState([]);
   const [userData, setUserData] = useState([]);
   const [Update, setUpdate] = useState('');
+  const [isModalVisible, setModalVisible] = useState(false);
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
   useFocusEffect(
     React.useCallback(() => {
       getUserData().then(userdata => {
@@ -64,39 +69,13 @@ const Circles = () => {
   const dropDownAlertRef = useRef();
   return (
     <SafeAreaView>
-      <CustomHeader label="Circle" />
+      <CustomHeader label="Circle" toggleModal={toggleModal} />
       <View
         style={{
           alignItems: 'center',
           backgroundColor: '#f0f0f0',
           height: Sizes.height,
         }}>
-        <View style={{marginTop: 50, width: 300}}>
-          <Text
-            style={{
-              color: '#e83e8c',
-              fontSize: 16,
-              marginLeft: 10,
-            }}>
-            5000 Kr. Fixed
-          </Text>
-          <TextInput
-            Type={'outlined'}
-            style={{backgroundColor: '#fff'}}
-            label="Circle Name"
-            value={CircleName}
-            onChangeText={text => setCircleName(text)}
-          />
-          <Button
-            onPress={addNewCircle}
-            mode="contained"
-            style={{
-              marginHorizontal: 70,
-              marginTop: 10,
-            }}>
-            Add New Circle
-          </Button>
-        </View>
         <ScrollView style={{width: Sizes.width, marginTop: 5}}>
           {allCircles.map((c, i) => (
             <ListItem key={i} bottomDivider>
@@ -112,32 +91,39 @@ const Circles = () => {
               </ListItem.Content>
             </ListItem>
           ))}
-
-          {/* <Card
-          containerStyle={{
-            borderWidth: 0,
-            elevation: 0,
-            backgroundColor: '#f0f0f0',
-          }}
-          wrapperStyle={{
-            backgroundColor: '#fff',
-            width: Sizes.width * 0.9,
-            elevation: 0,
-          }}>
-          {Circles.map((c, i) => (
-            <View
-              style={{
-                padding: 15,
-                borderWidth: 1,
-                borderColor: '#e1e8ee',
-                borderTopWidth: i === 0 ? 1 : 0,
-              }}>
-              <Text>{c.name}</Text>
-            </View>
-          ))}
-        </Card> */}
         </ScrollView>
         <View style={{height: 150}} />
+      </View>
+      <View style={{flex: 1}}>
+        <Modal
+          isVisible={isModalVisible}
+          animationIn="bounceIn"
+          onBackdropPress={() => setModalVisible(false)}>
+          <View
+            style={{
+              height: Sizes.ITEM_HEIGHT,
+              backgroundColor: 'white',
+              borderRadius: 10,
+              padding: 10,
+            }}>
+            <TextInput
+              Type={'outlined'}
+              style={{backgroundColor: '#fff'}}
+              label="Circle Name"
+              value={CircleName}
+              onChangeText={text => setCircleName(text)}
+            />
+            <Button
+              onPress={addNewCircle}
+              mode="contained"
+              style={{
+                marginHorizontal: 70,
+                marginTop: 10,
+              }}>
+              Add New Circle
+            </Button>
+          </View>
+        </Modal>
       </View>
 
       <DropdownAlert ref={dropDownAlertRef} />

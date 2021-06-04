@@ -1,13 +1,16 @@
 import * as React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {Button, Header} from 'react-native-elements';
-import {Appbar} from 'react-native-paper';
-import {Text, View} from 'react-native';
+import {Text, View, Image} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {Sizes} from './const';
 
-const CustomHeader = ({label, headerHeight = Sizes.ITEM_HEIGHT * 0.43}) => {
+const CustomHeader = ({
+  label,
+  headerHeight = Sizes.ITEM_HEIGHT * 0.43,
+  toggleModal = null,
+}) => {
   const [isHome, setisHome] = React.useState(true);
   const Logout = () => {
     console.log(' Logout');
@@ -19,16 +22,23 @@ const CustomHeader = ({label, headerHeight = Sizes.ITEM_HEIGHT * 0.43}) => {
     return (
       <View style={{flexDirection: 'row', alignItems: 'center'}}>
         {isHome ? (
+          // <Button
+          //   icon={<Icon name="person-circle-outline" size={30} color="white" />}
+          //   containerStyle={{borderRadius: 50, marginRight: 20}}
+          //   buttonStyle={{
+          //     backgroundColor: 'transparent',
+          //     alignSelf: 'center',
+          //   }}
+          //   onPress={() => {
+          //     navigation.navigate('Profile');
+          //   }}
+          // />
           <Button
-            icon={<Icon name="person-circle-outline" size={30} color="white" />}
-            containerStyle={{borderRadius: 50, marginRight: 20}}
-            buttonStyle={{
-              backgroundColor: 'transparent',
-              alignSelf: 'center',
-            }}
+            icon={myIcon}
             onPress={() => {
-              navigation.navigate('Profile');
+              navigation.toggleDrawer();
             }}
+            buttonStyle={{backgroundColor: 'transparent', alignSelf: 'center'}}
           />
         ) : (
           <Button
@@ -43,11 +53,39 @@ const CustomHeader = ({label, headerHeight = Sizes.ITEM_HEIGHT * 0.43}) => {
             }}
           />
         )}
-        <Text style={{color: 'white', fontSize: 20}}>{label}</Text>
+        <Text style={{color: 'white', fontSize: 20}}>
+          {label !== 'Dashboard' && label}
+        </Text>
       </View>
     );
   };
-
+  const HeaderRightComponent = () => {
+    if (label === 'Circle') {
+      return (
+        <Button
+          icon={<Icon name="add-circle-outline" size={30} color="white" />}
+          onPress={toggleModal}
+          buttonStyle={{backgroundColor: 'transparent', alignSelf: 'center'}}
+        />
+      );
+    } else if (label === 'Dashboard') {
+      return (
+        <Button
+          icon={<Icon name="person-circle-outline" size={30} color="white" />}
+          containerStyle={{borderRadius: 50}}
+          buttonStyle={{
+            backgroundColor: 'transparent',
+            alignSelf: 'flex-end',
+          }}
+          onPress={() => {
+            navigation.navigate('Profile');
+          }}
+        />
+      );
+    } else {
+      return <View />;
+    }
+  };
   useFocusEffect(
     React.useCallback(() => {
       console.log(navigation);
@@ -67,17 +105,17 @@ const CustomHeader = ({label, headerHeight = Sizes.ITEM_HEIGHT * 0.43}) => {
         end: {x: 1, y: 0.5},
       }}
       ViewComponent={LinearGradient} // Don't forget this!
-      rightComponent={
-        <Button
-          icon={myIcon}
-          onPress={() => {
-            navigation.toggleDrawer();
-          }}
-          buttonStyle={{backgroundColor: 'transparent', alignSelf: 'center'}}
-        />
+      rightComponent={<HeaderRightComponent />}
+      centerComponent={
+        label === 'Dashboard' && (
+          <Image
+            style={{zIndex: 10, height: 55, width: 55}}
+            source={require('../assets/Logos/White-croped.png')}
+          />
+        )
       }
       leftComponent={<HeaderLeftComponent />}
-      leftContainerStyle={{flex: 4}}
+      leftContainerStyle={label !== 'Dashboard' && {flex: 4}}
       containerStyle={{
         height: headerHeight,
         backgroundColor: '#3D6DCC',

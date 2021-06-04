@@ -23,6 +23,9 @@ const BottomTab = ({state, descriptors, navigation}) => {
       case 'Profile':
         icon = 'user-circle';
         break;
+      case 'Drawer':
+        icon = 'bars';
+        break;
       default:
         icon = 'default';
         break;
@@ -30,13 +33,17 @@ const BottomTab = ({state, descriptors, navigation}) => {
 
     const isFocused = state.index === index;
     const onPress = () => {
-      console.log('tab navigation');
-      const event = navigation.emit({
-        type: 'tabPress',
-        target: route.key,
-      });
-      if (!isFocused && !event.defaultPrevented) {
-        navigation.navigate(route.name);
+      console.log('tab navigation', navigation);
+      if (lable === 'Drawer') {
+        navigation.toggleDrawer();
+      } else {
+        const event = navigation.emit({
+          type: 'tabPress',
+          target: route.key,
+        });
+        if (!isFocused && !event.defaultPrevented) {
+          navigation.navigate(route.name);
+        }
       }
     };
     return (
