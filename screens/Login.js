@@ -13,6 +13,7 @@ import {setUserData} from '../Storage';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {Sizes} from '../components/const';
 import axios from '../axios';
+import DropdownAlert from 'react-native-dropdownalert';
 const Login = ({navigation}) => {
   Sizes;
   const {width} = Sizes;
@@ -20,7 +21,7 @@ const Login = ({navigation}) => {
   const [Password, setPassword] = useState('');
   const passwordRef = useRef();
   const [Loading, setLoading] = useState(false);
-
+  const dropDownAlertRef = useRef();
   const HandleSubmit = () => {
     console.log(UserName, Password);
     var formData = {username: UserName, password: Password};
@@ -39,16 +40,33 @@ const Login = ({navigation}) => {
         let responseJson = response.data;
         console.log(responseJson);
         setLoading(false);
-        if (responseJson.status) {
+        console.log(response);
+        if (response.status !== 200) {
           if (responseJson.title === 'Unauthorized') {
-            Alert.alert(responseJson?.title, 'Invalid username or Password');
+            dropDownAlertRef.current.alertWithType(
+              'error',
+              'Unauthorized',
+              'Invalid Password',
+            );
+          } else {
+            dropDownAlertRef.current.alertWithType(
+              'error',
+              'Unauthorized',
+              'Invalid UserName or Password',
+            );
           }
-        } else {
+        } else if (response.status === 200) {
           setUserData(responseJson).then(() => {
             navigation.reset({
               routes: [{name: 'HomeScreen'}],
             });
           });
+        } else {
+          dropDownAlertRef.current.alertWithType(
+            'error',
+            'Error',
+            'Something went wrong',
+          );
         }
       })
       .catch(error => {
@@ -157,6 +175,7 @@ const Login = ({navigation}) => {
           titleStyle={{fontSize: 25}}
         />
       </View>
+      <DropdownAlert ref={dropDownAlertRef} />
     </SafeAreaView>
   );
 };

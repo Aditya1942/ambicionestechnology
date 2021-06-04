@@ -14,8 +14,9 @@ import BottomTab from './components/BottomTab';
 import Circles from './screens/Circles';
 import Profile from './screens/Profile';
 import {Sizes} from './components/const';
-import {StatusBar, Text, View} from 'react-native';
+import {StatusBar} from 'react-native';
 import DrawerScreen from './screens/DrawerScreen';
+import Splash from './screens/Splash';
 
 // http://omba-app.ambicionestechnology.com/api/account/login
 //{username: "admin", password: "Pa$$w0rd"}
@@ -45,9 +46,10 @@ const CustomDrawer = () => {
   );
 };
 
-const Main = () => {
-  const [LoggedIn, setLoggedIn] = useState(false);
+const Main = ({route}) => {
+  const [LoggedIn, setLoggedIn] = useState(route?.params?.isLoggedin || false);
   useEffect(() => {
+    console.log(route);
     getUserData().then(data => {
       console.log(data);
       if (!data) {
@@ -56,7 +58,7 @@ const Main = () => {
         setLoggedIn(true); //
       }
     });
-  }, []);
+  }, [route]);
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
       {LoggedIn ? (
@@ -74,6 +76,7 @@ const Main = () => {
 const MainStack = () => {
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
+      <Stack.Screen name="Splash" component={Splash} />
       <Stack.Screen name="HomeScreen" component={Main} />
     </Stack.Navigator>
   );

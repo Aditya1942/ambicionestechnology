@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DrawerScreen = ({navigation}) => {
   const LogOut = () => {
-    AsyncStorage.removeItem('@userData');
+    AsyncStorage.removeItem('@userTokenData');
     navigation.reset({
       routes: [{name: 'HomeScreen'}],
     });
