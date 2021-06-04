@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {
+  Button,
   SafeAreaView,
   ScrollView,
   Text,
@@ -10,11 +11,31 @@ import {Sizes} from '../components/const';
 import CustomHeader from '../components/Header';
 import {getUserData, setUserInfo} from '../Storage';
 import Icon from 'react-native-vector-icons/FontAwesome5';
+import {createStackNavigator} from '@react-navigation/stack';
+import Payments from './Payments';
+import Modal from 'react-native-modal';
 
-const TotalBalanceCard = () => {
-  const TotalBalanceCarIcons = ({title, bgColor}) => {
+const Stack = createStackNavigator();
+
+const TotalBalanceCard = ({UserData, navigation}) => {
+  const [isModalVisible, setModalVisible] = useState(false);
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+  const TotalBalanceCarIcons = ({title, bgColor, icon, action}) => {
+    const onPressHandler = () => {
+      if (action === 'addMember') {
+        navigation.navigate('Members', {screen: 'AddMembers'});
+      } else if (action === 'payments') {
+        navigation.navigate('Payments');
+      } else if (action === 'withdraw') {
+        toggleModal();
+      }
+    };
     return (
-      <View style={{justifyContent: 'center', alignItems: 'center'}}>
+      <TouchableOpacity
+        onPress={onPressHandler}
+        style={{justifyContent: 'center', alignItems: 'center'}}>
         <View
           style={{
             backgroundColor: bgColor,
@@ -23,12 +44,15 @@ const TotalBalanceCard = () => {
             borderRadius: 10,
             justifyContent: 'center',
             alignItems: 'center',
-          }}
-        />
+          }}>
+          <Icon name={icon} size={30} color="white" />
+        </View>
+
         <Text style={{paddingTop: 15}}>{title}</Text>
-      </View>
+      </TouchableOpacity>
     );
   };
+
   return (
     <View
       style={{
@@ -48,10 +72,15 @@ const TotalBalanceCard = () => {
           paddingBottom: 30,
         }}>
         <View>
-          <Text style={{fontSize: 20, fontWeight: '500'}}>Total Balance</Text>
-          <Text style={{fontSize: 30, fontWeight: '700'}}>$ 2,562.50</Text>
+          <Text style={{fontSize: 30, fontWeight: '700'}}>
+            {`${UserData.firstName || ''} ${UserData.firstName || ''}`}
+          </Text>
+          <Text style={{fontSize: 18, fontWeight: '500'}}>
+            {UserData.email}
+            parmaraditya1942@gmail.com
+          </Text>
         </View>
-        <View>
+        {/* <View>
           <View
             style={{
               height: 64,
@@ -61,10 +90,8 @@ const TotalBalanceCard = () => {
               backgroundColor: 'rgba(98,54,255,.1)',
               color: '#6236ff',
               borderRadius: 10,
-            }}>
-            {/* <Text style={{fontSize: 26}}></Text> */}
-          </View>
-        </View>
+            }}/>
+        </View> */}
       </View>
       {/* second row  */}
       <View
@@ -73,10 +100,46 @@ const TotalBalanceCard = () => {
           flexDirection: 'row',
           justifyContent: 'space-evenly',
         }}>
-        <TotalBalanceCarIcons title="Withdraw" bgColor="#ff396f" />
-        <TotalBalanceCarIcons title="Send" bgColor="#6236ff" />
-        <TotalBalanceCarIcons title="Cards" bgColor="#1dcc70" />
-        <TotalBalanceCarIcons title="Exchange" bgColor="#ffb400" />
+        <TotalBalanceCarIcons
+          action="withdraw"
+          title="Withdraw"
+          icon="dollar-sign"
+          bgColor="#ff396f"
+        />
+        <TotalBalanceCarIcons
+          action="addMember"
+          title="Add Member"
+          icon="plus-circle"
+          bgColor="#6236ff"
+        />
+        <TotalBalanceCarIcons
+          action="payments"
+          title="Payments"
+          icon="file-invoice-dollar"
+          bgColor="#1dcc70"
+        />
+      </View>
+      <View style={{flex: 1}}>
+        <Modal
+          isVisible={isModalVisible}
+          animationIn="slideInUp"
+          animationOut="slideOutUp"
+          onBackdropPress={() => setModalVisible(false)}>
+          <View
+            style={{
+              height: Sizes.ITEM_HEIGHT * 0.6,
+              width: Sizes.ITEM_WIDTH * 2,
+              backgroundColor: 'white',
+              borderRadius: 10,
+              padding: 10,
+              justifyContent: 'center',
+              alignItems: 'center',
+              alignSelf: 'center',
+            }}>
+            <Text style={{marginBottom: 20}}>Comming soon</Text>
+            <Button title="close" onPress={toggleModal} />
+          </View>
+        </Modal>
       </View>
     </View>
   );
@@ -171,7 +234,12 @@ const Transactions = ({price, title, subtitle, img}) => {
     </View>
   );
 };
-const Home = ({navigation}) => {
+const Dashboard = ({navigation}) => {
+  const [UserData, setUserData] = useState([]);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
   const getUserInfo = () => {
     getUserData()
       .then(data => {
@@ -190,6 +258,7 @@ const Home = ({navigation}) => {
             .then(userData => {
               console.log('userInfo From Home page', userData);
               setUserInfo(userData);
+              setUserData(userData);
             })
             .catch(err => console.log(err));
         }
@@ -218,8 +287,8 @@ const Home = ({navigation}) => {
               paddingVertical: 15,
               paddingHorizontal: Sizes.width * 0.05,
             }}>
-            <TotalBalanceCard />
-            <Cards />
+            <TotalBalanceCard UserData={UserData} navigation={navigation} />
+            {/* <Cards /> */}
             {/* Transactions */}
             <View
               style={{
@@ -266,7 +335,33 @@ const Home = ({navigation}) => {
           </View>
         </ScrollView>
       </View>
+      <View style={{flex: 1}}>
+        <Modal
+          isVisible={isModalVisible}
+          animationIn="bounceIn"
+          onBackdropPress={() => setModalVisible(false)}>
+          <View
+            style={{
+              height: Sizes.ITEM_HEIGHT,
+              backgroundColor: 'white',
+              borderRadius: 10,
+              padding: 10,
+            }}>
+            <Text>Hello</Text>
+          </View>
+        </Modal>
+      </View>
     </SafeAreaView>
+  );
+};
+const Home = ({navigation}) => {
+  return (
+    <Stack.Navigator
+      initialRouteName={'DashBoard'}
+      screenOptions={{headerShown: false}}>
+      <Stack.Screen name="DashBoard" component={Dashboard} />
+      <Stack.Screen name="Payments" component={Payments} />
+    </Stack.Navigator>
   );
 };
 

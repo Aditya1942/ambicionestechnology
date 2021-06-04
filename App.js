@@ -31,7 +31,7 @@ const BottomTabScreen = () => {
       <MainTab.Screen name="Members" component={Member} />
       <MainTab.Screen name="Circles" component={Circles} />
       <MainTab.Screen name="Profile" component={Profile} />
-      <MainTab.Screen name="Drawer" component={Profile} />
+      <MainTab.Screen name="Menu" component={Profile} />
     </MainTab.Navigator>
   );
 };

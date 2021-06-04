@@ -109,8 +109,9 @@ const CustomHeader = ({
       centerComponent={
         label === 'Dashboard' && (
           <Image
-            style={{zIndex: 10, height: 55, width: 55}}
-            source={require('../assets/Logos/White-croped.png')}
+            style={{zIndex: 10, height: 50, width: 38}}
+            // style={{zIndex: 10, height: 55, width: 55}}
+            source={require('../assets/Logos/White.png')}
           />
         )
       }

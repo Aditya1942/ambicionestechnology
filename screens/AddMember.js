@@ -1,7 +1,8 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {
   Button,
   KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,8 +13,14 @@ import LinearGradient from 'react-native-linear-gradient';
 import {Sizes} from '../components/const';
 import CustomHeader from '../components/Header';
 import {Picker} from '@react-native-picker/picker';
+import {useFocusEffect} from '@react-navigation/core';
+import {getUserData} from '../Storage';
+import axios from '../axios';
+import DropdownAlert from 'react-native-dropdownalert';
 
-const AddMember = () => {
+const AddMember = ({navigation}) => {
+  const [CircleList, setCircleList] = useState([]);
+  // input feilds
   const [circle, setCircle] = useState('');
   const [FirstName, setFirstName] = useState('');
   const [LastName, setLastName] = useState('');
@@ -23,6 +30,149 @@ const AddMember = () => {
   const [Mobile, setMobile] = useState('');
   const [Password, setPassword] = useState('');
   const [ConfirmPassword, setConfirmPassword] = useState('');
+  // input feilds
+
+  const [KeyboardView, setKeyboardView] = useState(false);
+
+  // input refs
+  const FirstNameRef = useRef();
+  const LastNameNameRef = useRef();
+  const UserNameRef = useRef();
+  const EmailRef = useRef();
+  const CityRef = useRef();
+  const MobileRef = useRef();
+  const PasswordRef = useRef();
+  const ConfirmPasswordRef = useRef();
+  // input refs
+  const dropDownAlertRef = useRef();
+
+  const onFocusHandler = reference => {
+    console.log(reference.current.props.name);
+    if (
+      reference.current.props.name === 'FirstName' ||
+      reference.current.props.name === 'LastName'
+    ) {
+      if (KeyboardView) setKeyboardView(false);
+    } else {
+      if (!KeyboardView) setKeyboardView(true);
+    }
+  };
+  const onsubmitHandler = () => {
+    let formDataArray = [
+      {name: 'circle', value: circle},
+      {name: 'FirstName', value: FirstName},
+      {name: 'LastName', value: LastName},
+      {name: 'UserName', value: UserName},
+      {name: 'Email', value: Email},
+      {name: 'City', value: City},
+      {name: 'Mobile', value: Mobile},
+      {name: 'Password', value: Password},
+      {name: 'ConfirmPassword', value: ConfirmPassword},
+    ];
+    if (Password !== ConfirmPassword) {
+      console.log(ConfirmPasswordRef.current.props);
+      dropDownAlertRef.current.alertWithType(
+        'error',
+        '',
+        "Password doesn't match.",
+      );
+      return 'error';
+    }
+    for (let i = 0; i < formDataArray.length; i++) {
+      const element = formDataArray[i];
+      if (element.value === '') {
+        dropDownAlertRef.current.alertWithType(
+          'error',
+          '',
+          element.name + ' is empty.',
+        );
+        return 'error';
+      }
+    }
+    getUserData().then(userdata => {
+      const Postdata = {
+        adminUserId: userdata.id,
+        circleId: circle,
+        city: City,
+        confirmPassword: ConfirmPassword,
+        email: Email,
+        firstName: FirstName,
+        gender: 'male',
+        lastName: LastName,
+        mobile: Mobile,
+        password: Password,
+        username: UserName,
+      };
+      setUserData(userdata);
+      axios({
+        url: '/users/addMember',
+        method: 'POST',
+        data: Postdata,
+        headers: {
+          'Content-Type': 'application/json',
+          authorization: 'Bearer ' + userdata.token,
+        },
+      }).then(data => {
+        console.log(data);
+        if (data.status === 400) {
+          dropDownAlertRef.current.alertWithType(
+            'error',
+            '',
+            "User name 'email' is already taken.",
+          );
+        } else if (data.status === 200) {
+          dropDownAlertRef.current.alertWithType(
+            'success',
+            'success',
+            'New member added ',
+          );
+          setTimeout(() => {
+            navigation.navigate('AllMembers');
+          }, 2000);
+        } else {
+          dropDownAlertRef.current.alertWithType(
+            'error',
+            'Error',
+            'Something went wrong Please try again',
+          );
+        }
+      });
+    });
+    // users/addMember
+    // adminUserId: 11
+    // circleId: 10
+    // city: "city"
+    // confirmPassword: "pass"
+    // email: "demo@user.com"
+    // firstName: "demo"
+    // gender: "male"
+    // lastName: "demo "
+    // mobile: "1234567891"
+    // password: "pass"
+    // username: "demo user "
+    console.log(formDataArray);
+  };
+  const [UserData, setUserData] = useState([]);
+  useFocusEffect(
+    React.useCallback(() => {
+      getUserData().then(userdata => {
+        setUserData(userdata);
+        axios({
+          url: '/users/GetCircles/' + userdata.id,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: 'Bearer ' + userdata.token,
+          },
+        }).then(data => {
+          setCircleList(data.data);
+          console.log(data, navigation);
+        });
+      });
+    }, [navigation]),
+  );
+  const keyboardVerticalOffset = Platform.OS === 'ios' ? 40 : 0;
+
   return (
     <View>
       <CustomHeader label="Add Member" />
@@ -38,74 +188,159 @@ const AddMember = () => {
               <Text style={style.containerTitleText}>Add New Member</Text>
             </View>
           </LinearGradient>
-          <ScrollView>
-            <KeyboardAvoidingView behavior={'padding'}>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
+            <View style={{height: 30}} />
+            <KeyboardAvoidingView
+              enabled={KeyboardView}
+              behavior="position"
+              keyboardVerticalOffset={keyboardVerticalOffset}>
               <Picker
                 selectedValue={circle}
                 onValueChange={(itemValue, itemIndex) => setCircle(itemValue)}>
                 <Picker.Item label="Select Circle" value="" enabled={false} />
-                <Picker.Item label="Circle 1" value="Circle 1" />
-                <Picker.Item label="Circle 2" value="Circle 2" />
+                {CircleList.map((c, i) => (
+                  <Picker.Item key={c.id} label={c.name} value={c.id} />
+                ))}
               </Picker>
               <Input
                 type="text"
                 placeholder="First Name"
+                name="FirstName"
+                clearButtonMode={'while-editing'}
+                returnKeyLabel={'next'}
+                returnKeyType={'next'}
+                ref={FirstNameRef}
                 value={FirstName}
+                onFocus={() => onFocusHandler(FirstNameRef)}
                 onChangeText={e => setFirstName(e)}
+                onSubmitEditing={() => {
+                  LastNameNameRef.current.focus();
+                }}
               />
               <Input
                 type="text"
                 placeholder="Last Name"
+                name="LastName"
+                clearButtonMode={'while-editing'}
+                returnKeyLabel={'next'}
+                returnKeyType={'next'}
+                ref={LastNameNameRef}
+                onFocus={() => onFocusHandler(LastNameNameRef)}
                 value={LastName}
                 onChangeText={e => setLastName(e)}
+                onSubmitEditing={() => {
+                  UserNameRef.current.focus();
+                }}
               />
               <Input
                 type="text"
                 placeholder="Username"
+                name="UserName"
+                clearButtonMode={'while-editing'}
+                returnKeyLabel={'next'}
+                returnKeyType={'next'}
+                ref={UserNameRef}
+                onFocus={() => onFocusHandler(UserNameRef)}
                 value={UserName}
                 onChangeText={e => setUserName(e)}
+                onSubmitEditing={() => {
+                  EmailRef.current.focus();
+                }}
               />
               <Input
                 type="text"
-                placeholder="Enail"
+                placeholder="Email"
+                name="Email"
+                textContentType={'emailAddress'}
+                autoCompleteType={'email'}
+                clearButtonMode={'while-editing'}
+                returnKeyLabel={'next'}
+                returnKeyType={'next'}
+                keyboardType={'email-address'}
+                ref={EmailRef}
+                onFocus={() => onFocusHandler(EmailRef)}
                 value={Email}
                 onChangeText={e => setEmail(e)}
+                onSubmitEditing={() => {
+                  CityRef.current.focus();
+                }}
               />
               <Input
                 type="text"
                 placeholder="City"
+                name="City"
+                clearButtonMode={'while-editing'}
+                returnKeyLabel={'next'}
+                returnKeyType={'next'}
+                ref={CityRef}
+                onFocus={() => onFocusHandler(CityRef)}
                 value={City}
                 onChangeText={e => setCity(e)}
+                onSubmitEditing={() => {
+                  MobileRef.current.focus();
+                }}
               />
               <Input
                 type="tex"
                 placeholder="Mobile"
+                name="Mobile"
+                clearButtonMode={'while-editing'}
+                returnKeyLabel={'next'}
+                returnKeyType={'next'}
+                ref={MobileRef}
+                onFocus={() => onFocusHandler(MobileRef)}
                 value={Mobile}
                 onChangeText={e => setMobile(e)}
+                onSubmitEditing={() => {
+                  PasswordRef.current.focus();
+                }}
               />
               <Input
                 type="tex"
                 placeholder="Password"
+                name="Password"
+                clearButtonMode={'while-editing'}
+                returnKeyLabel={'next'}
+                returnKeyType={'next'}
+                ref={PasswordRef}
+                secureTextEntry={true}
+                onFocus={() => onFocusHandler(PasswordRef)}
                 value={Password}
                 onChangeText={e => setPassword(e)}
+                onSubmitEditing={() => {
+                  ConfirmPasswordRef.current.focus();
+                }}
               />
               <Input
                 type="tex"
                 placeholder="Confirm Password"
+                name="ConfirmPassword"
+                clearButtonMode={'while-editing'}
+                returnKeyLabel={'done'}
+                returnKeyType={'done'}
+                ref={ConfirmPasswordRef}
+                secureTextEntry={true}
+                onFocus={() => onFocusHandler(ConfirmPasswordRef)}
                 value={ConfirmPassword}
                 onChangeText={e => setConfirmPassword(e)}
+                onSubmitEditing={onsubmitHandler}
+                errorMessage={''}
               />
               <Button
                 style={{borderRadius: 10}}
+                onPress={onsubmitHandler}
                 color="#82b1ff"
                 title="Submit"
                 type="outline"
               />
             </KeyboardAvoidingView>
-            <View style={{height: 150}} />
+            <View style={{height: 300}} />
           </ScrollView>
         </View>
       </View>
+      <DropdownAlert ref={dropDownAlertRef} />
     </View>
   );
 };

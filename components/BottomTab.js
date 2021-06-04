@@ -23,7 +23,7 @@ const BottomTab = ({state, descriptors, navigation}) => {
       case 'Profile':
         icon = 'user-circle';
         break;
-      case 'Drawer':
+      case 'Menu':
         icon = 'bars';
         break;
       default:
@@ -33,16 +33,22 @@ const BottomTab = ({state, descriptors, navigation}) => {
 
     const isFocused = state.index === index;
     const onPress = () => {
-      console.log('tab navigation', navigation);
-      if (lable === 'Drawer') {
+      console.log('tab navigation', navigation, route);
+      // open menu
+      if (lable === 'Menu') {
         navigation.toggleDrawer();
       } else {
+        // navigate to scrreens
         const event = navigation.emit({
           type: 'tabPress',
           target: route.key,
         });
         if (!isFocused && !event.defaultPrevented) {
-          navigation.navigate(route.name);
+          if (route.name === 'Member') {
+            navigation.navigate(route.name, {screen: 'AllMembers'});
+          } else {
+            navigation.navigate(route.name);
+          }
         }
       }
     };

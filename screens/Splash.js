@@ -18,7 +18,7 @@ const Splash = ({navigation}) => {
     });
     setTimeout(() => {
       navigation.replace('HomeScreen', {isLoggedin: LoggedIn});
-    }, 12000); //<-- Time until it jumps to "MainView"
+    }, 2000); //<-- Time until it jumps to "MainView"
   }, [navigation]);
 
   return (

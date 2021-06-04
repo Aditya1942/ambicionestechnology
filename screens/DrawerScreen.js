@@ -78,7 +78,7 @@ const DrawerScreen = ({navigation}) => {
           </TouchableOpacity>
         </View>
         <DrawerItem lable="Home" navigateTo="Home" />
-        <DrawerItem lable="Members" navigateTo={['Members', 'Members']} />
+        <DrawerItem lable="Members" navigateTo={['Members', 'AllMembers']} />
         <DrawerItem
           lable="Add Members"
           navigateTo={['Members', 'AddMembers']}

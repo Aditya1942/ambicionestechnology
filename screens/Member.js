@@ -18,39 +18,38 @@ import {getUserData} from '../Storage';
 import {useFocusEffect} from '@react-navigation/core';
 
 const Stack = createStackNavigator();
-const AllMembers = () => {
+const Card = ({index, title, circle, mobile, status}) => {
+  const TextStyle = {
+    marginLeft: 10,
+    color: '#6c6573',
+    fontWeight: '500',
+    fontSize: 16,
+  };
+  return (
+    <View
+      style={{
+        padding: 15,
+        paddingBottom: 20,
+        marginBottom: 20,
+        backgroundColor: '#fff',
+        borderRadius: 10,
+      }}>
+      <Text style={{fontSize: 20, fontWeight: '700', marginBottom: 10}}>
+        {index}) {title}
+      </Text>
+      <Text style={TextStyle}>Circle: {circle}</Text>
+      <Text style={TextStyle}>Mobile: {mobile}</Text>
+      <Text style={TextStyle}>Status: {status}</Text>
+    </View>
+  );
+};
+const AllMembers = ({navigation}) => {
   const [MemberData, setMemberData] = useState([]);
   const [userData, setUserData] = useState([]);
 
-  const Card = ({index, title, circle, mobile, status}) => {
-    const TextStyle = {
-      marginLeft: 10,
-      color: '#6c6573',
-      fontWeight: '500',
-      fontSize: 16,
-    };
-    return (
-      <View
-        style={{
-          padding: 15,
-          paddingBottom: 20,
-          marginBottom: 20,
-          backgroundColor: '#fff',
-          borderRadius: 10,
-        }}>
-        <Text style={{fontSize: 20, fontWeight: '700', marginBottom: 10}}>
-          {index}) {title}
-        </Text>
-        <Text style={TextStyle}>Circle: {circle}</Text>
-        <Text style={TextStyle}>Mobile: {mobile}</Text>
-        <Text style={TextStyle}>Status: {status}</Text>
-      </View>
-    );
-  };
   useFocusEffect(
     React.useCallback(() => {
       getUserData().then(userdata => {
-        console.log(userdata);
         setUserData(userdata);
         axios({
           url: '/users/GetMembers/' + userdata.id,
@@ -61,21 +60,21 @@ const AllMembers = () => {
           },
         }).then(data => {
           setMemberData(data.data);
-          console.log(data);
+          console.log(data, navigation);
         });
       });
-    }, []),
+    }, [navigation]),
   );
 
   return (
     <ScrollView style={{padding: 20}}>
-      {MemberData.map((Member, i) => (
+      {MemberData.map((member, i) => (
         <Card
           key={i}
           index={i + 1}
-          title={Member.firstName + ' ' + Member.lastName}
-          circle={Member.circleName}
-          mobile={Member.mobile}
+          title={member.firstName + ' ' + member.lastName}
+          circle={member.circleName}
+          mobile={member.mobile}
           status={'pending'}
         />
       ))}
@@ -84,14 +83,47 @@ const AllMembers = () => {
     </ScrollView>
   );
 };
-const AllAdmin = () => {
+const AllAdmin = ({navigation}) => {
+  const [AdminData, setAdminData] = useState([]);
+  const [userData, setUserData] = useState([]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      getUserData().then(userdata => {
+        setUserData(userdata);
+        axios({
+          url: '/users/GetMembers/' + userdata.id,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: 'Bearer ' + userdata.token,
+          },
+        }).then(data => {
+          setAdminData(data.data);
+          console.log(data, navigation);
+        });
+      });
+    }, [navigation]),
+  );
+
   return (
-    <View>
-      <Text>All Admin</Text>
-    </View>
+    <ScrollView style={{padding: 20}}>
+      {AdminData.map((admin, i) => (
+        <Card
+          key={i}
+          index={i + 1}
+          title={admin.firstName + ' ' + admin.lastName}
+          circle={admin.circleName}
+          mobile={admin.mobile}
+          status={'pending'}
+        />
+      ))}
+
+      <View style={{height: 200}} />
+    </ScrollView>
   );
 };
-const Main = () => {
+const Main = ({navigation}) => {
   const [translateValue] = React.useState(new Animated.Value(0));
   const [CurrentTab, setCurrentTab] = React.useState(0);
   const tabWidth = Sizes.width / 2;
@@ -145,7 +177,11 @@ const Main = () => {
           <Text>Admin</Text>
         </Tab>
       </View>
-      {CurrentTab === 0 ? <AllMembers /> : <AllAdmin />}
+      {CurrentTab === 0 ? (
+        <AllMembers navigation={navigation} />
+      ) : (
+        <AllAdmin navigation={navigation} />
+      )}
     </View>
   );
 };
@@ -153,7 +189,7 @@ const Main = () => {
 const Member = () => {
   return (
     <Stack.Navigator
-      initialRouteName={'Members'}
+      initialRouteName={'AllMembers'}
       screenOptions={{headerShown: false}}>
       <Stack.Screen name="AllMembers" component={Main} />
       <Stack.Screen name="AddMembers" component={AddMember} />

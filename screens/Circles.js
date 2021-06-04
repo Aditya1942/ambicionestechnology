@@ -39,32 +39,35 @@ const Circles = () => {
   );
 
   const addNewCircle = () => {
-    axios({
-      url: '/users/AddCircle',
-      method: 'POST',
-      data: {name: CircleName, userId: userData.id},
-      headers: {
-        'Content-Type': 'application/json',
-        authorization: 'Bearer ' + userData.token,
-      },
-    }).then(data => {
-      console.log(data);
-      if (data.status === 200) {
-        dropDownAlertRef.current.alertWithType(
-          'success',
-          'Success',
-          'New circle Added',
-        );
-      } else if (data.status === 400) {
-        dropDownAlertRef.current.alertWithType(
-          'warn',
-          '',
-          'Circle name already used.',
-        );
-      }
-      setCircleName('');
-      setUpdate(data);
-    });
+    if (CircleName !== '') {
+      axios({
+        url: '/users/AddCircle',
+        method: 'POST',
+        data: {name: CircleName, userId: userData.id},
+        headers: {
+          'Content-Type': 'application/json',
+          authorization: 'Bearer ' + userData.token,
+        },
+      }).then(data => {
+        console.log(data);
+        if (data.status === 200) {
+          dropDownAlertRef.current.alertWithType(
+            'success',
+            'Success',
+            'New circle Added',
+          );
+        } else if (data.status === 400) {
+          dropDownAlertRef.current.alertWithType(
+            'warn',
+            '',
+            'Circle name already used.',
+          );
+        }
+        setModalVisible(false);
+        setCircleName('');
+        setUpdate(data);
+      });
+    }
   };
   const dropDownAlertRef = useRef();
   return (
@@ -111,6 +114,7 @@ const Circles = () => {
               style={{backgroundColor: '#fff'}}
               label="Circle Name"
               value={CircleName}
+              onSubmitEditing={addNewCircle}
               onChangeText={text => setCircleName(text)}
             />
             <Button
