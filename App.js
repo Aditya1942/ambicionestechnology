@@ -17,6 +17,7 @@ import {Sizes} from './components/const';
 import {StatusBar} from 'react-native';
 import DrawerScreen from './screens/DrawerScreen';
 import Splash from './screens/Splash';
+import messaging from '@react-native-firebase/messaging';
 
 // http://omba-app.ambicionestechnology.com/api/account/login
 //{username: "admin", password: "Pa$$w0rd"}
@@ -84,6 +85,26 @@ const MainStack = () => {
 };
 
 const App = () => {
+  useEffect(() => {
+    // Get the device token
+    messaging()
+      .getToken()
+      .then(token => {
+        console.log(token);
+        // return saveTokenToDatabase(token);
+      });
+
+    // If using other push notification providers (ie Amazon SNS, etc)
+    // you may need to get the APNs token instead for iOS:
+    // if(Platform.OS == 'ios') { messaging().getAPNSToken().then(token => { return saveTokenToDatabase(token); }); }
+
+    // Listen to whether the token changes
+    return messaging().onTokenRefresh(token => {
+      console.log(token);
+
+      // saveTokenToDatabase(token);
+    });
+  }, []);
   return (
     <NavigationContainer>
       <PaperProvider>

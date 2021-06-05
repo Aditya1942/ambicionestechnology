@@ -18,7 +18,7 @@ const BottomTab = ({state, descriptors, navigation}) => {
         icon = 'users';
         break;
       case 'Circles':
-        icon = 'dollar-sign';
+        icon = 'spinner';
         break;
       case 'Profile':
         icon = 'user-circle';

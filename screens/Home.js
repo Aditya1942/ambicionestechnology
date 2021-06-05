@@ -14,7 +14,8 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import {createStackNavigator} from '@react-navigation/stack';
 import Payments from './Payments';
 import Modal from 'react-native-modal';
-
+import axios from '../axios';
+import {useFocusEffect} from '@react-navigation/core';
 const Stack = createStackNavigator();
 
 const TotalBalanceCard = ({UserData, navigation}) => {
@@ -196,7 +197,22 @@ const Cards = () => {
   );
 };
 
-const Transactions = ({price, title, subtitle, img}) => {
+const Transactions = ({body, installment, date, index}) => {
+  var d = new Date(date);
+  var months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   return (
     <View
       style={{
@@ -209,34 +225,86 @@ const Transactions = ({price, title, subtitle, img}) => {
         backgroundColor: '#fff',
       }}>
       <View style={{flexDirection: 'row'}}>
-        <View style={{flex: 0.2, justifyContent: 'center'}}>
-          <Text>
-            <Icon name={img} size={30} />
-          </Text>
+        <View style={{flex: 0.1, justifyContent: 'center'}}>
+          <Text style={{fontSize: 18}}>{index})</Text>
         </View>
-        <View style={{flex: 0.6, justifyContent: 'center'}}>
+        <View style={{flex: 0.8, justifyContent: 'center'}}>
           <Text style={{fontSize: 18, fontWeight: '600', color: '#27173e'}}>
-            {title}
+            {` ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}{' '}
           </Text>
-          <Text style={{color: '#958d9e', fontSize: 12}}>{subtitle}</Text>
+          <Text style={{color: '#958d9e', fontSize: 16}}>{body}</Text>
         </View>
         <View style={{flex: 0.2, justifyContent: 'center'}}>
           <Text
             style={{
-              color: price < 0 ? '#ff396f' : '#27173e',
+              color: installment < 0 ? '#ff396f' : '#27173e',
               fontWeight: '700',
               fontSize: 15,
             }}>
-            {price > 0 ? '+' : '-'}$ {price}
+            {installment > 0 ? '' : '-'}Kr {installment}
           </Text>
         </View>
       </View>
     </View>
   );
 };
+
+const Circles = ({navigation}) => {
+  const [circleData, setcircleData] = useState([]);
+  useFocusEffect(
+    React.useCallback(() => {
+      getUserData().then(userdata => {
+        navigation;
+        axios({
+          url: '/users/GetCircles/' + userdata.id,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: 'Bearer ' + userdata.token,
+          },
+        }).then(data => {
+          setcircleData(data.data);
+          console.log(data);
+        });
+      });
+    }, [navigation]),
+  );
+  const Circle = ({name}) => {
+    return (
+      <View
+        style={{
+          backgroundColor: '#fff',
+          width: 120,
+          borderRadius: 20,
+          marginBottom: 10,
+          marginHorizontal: 10,
+          elevation: 10,
+          shadowColor: '#000',
+          shadowOffset: {width: 0, height: 3},
+          shadowOpacity: 0.5,
+          shadowRadius: 5,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <Text>{name}</Text>
+      </View>
+    );
+  };
+  return (
+    <View style={{height: 100, marginTop: 20}}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {circleData.map(circle => (
+          <Circle key={circle.id} name={circle.name} />
+        ))}
+      </ScrollView>
+    </View>
+  );
+};
+
 const Dashboard = ({navigation}) => {
   const [UserData, setUserData] = useState([]);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [PaymentData, setPaymentData] = useState([]);
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
@@ -246,28 +314,54 @@ const Dashboard = ({navigation}) => {
         console.log('userInfo From Home page', data);
 
         if (data) {
-          fetch('http://omba-app.ambicionestechnology.com/api/users/admin', {
+          axios({
+            url: '/users/admin',
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${data.token}`,
-              // 'Content-Type': 'application/x-www-form-urlencoded',
+              authorization: 'Bearer ' + data.token,
             },
           })
-            .then(response => response.json())
-            .then(userData => {
+            .then(res => {
+              const userData = res.data;
               console.log('userInfo From Home page', userData);
+
               setUserInfo(userData);
               setUserData(userData);
+              return data;
             })
             .catch(err => console.log(err));
         }
       })
       .catch(err => console.log(err));
+    return 0;
+  };
+  const getPaymentData = () => {
+    getUserData().then(userdata => {
+      console.log(userdata);
+      setUserData(userdata);
+      axios({
+        url: '/users/GetPayments/' + userdata.id,
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          authorization: 'Bearer ' + userdata.token,
+        },
+      }).then(data => {
+        console.log(data);
+        setPaymentData(data.data.splice(-5).reverse());
+      });
+    });
   };
   useEffect(() => {
     getUserInfo();
   }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      getPaymentData();
+      navigation;
+    }, [navigation]),
+  );
   return (
     <SafeAreaView>
       <CustomHeader label="Dashboard" />
@@ -288,8 +382,11 @@ const Dashboard = ({navigation}) => {
               paddingHorizontal: Sizes.width * 0.05,
             }}>
             <TotalBalanceCard UserData={UserData} navigation={navigation} />
+
             {/* <Cards /> */}
+            <Circles />
             {/* Transactions */}
+            <Button title="Add new member" onPress={toggleModal} />
             <View
               style={{
                 marginVertical: 10,
@@ -300,7 +397,10 @@ const Dashboard = ({navigation}) => {
               <Text style={{fontSize: 20, fontWeight: 'bold'}}>
                 Transactions
               </Text>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate('Payments');
+                }}>
                 <Text
                   style={{
                     fontSize: 15,
@@ -311,18 +411,15 @@ const Dashboard = ({navigation}) => {
                 </Text>
               </TouchableOpacity>
             </View>
-            <Transactions
-              price={150}
-              title={'Amazon'}
-              subtitle={'Shopping'}
-              img="amazon"
-            />
-            <Transactions
-              price={29}
-              title={'Apple'}
-              subtitle={'Appstore Purchase'}
-              img="apple"
-            />
+            {PaymentData.map((payment, i) => (
+              <Transactions
+                key={payment.id}
+                index={i + 1}
+                date={payment.created}
+                installment={payment.installment}
+                body={`AdminCommission ${payment.adminCommissionAmount} Kr,${payment.commissionPercentage}%`}
+              />
+            ))}
           </View>
           <View
             style={{
@@ -331,7 +428,7 @@ const Dashboard = ({navigation}) => {
               alignItems: 'center',
               justifyContent: 'flex-start',
             }}>
-            <Text> Copyright © Payment 2021. All Rights Reserved. </Text>
+            {/* <Text> Copyright © Payment 2021. All Rights Reserved. </Text> */}
           </View>
         </ScrollView>
       </View>

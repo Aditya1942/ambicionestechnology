@@ -31,7 +31,6 @@ const Login = ({navigation}) => {
     axios({
       url: '/account/login',
       method: 'POST',
-
       data: formData,
       headers: {'Content-Type': 'application/json'},
     })
