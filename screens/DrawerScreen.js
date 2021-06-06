@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {Sizes} from '../components/const';
-import LinearGradient from 'react-native-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DrawerScreen = ({navigation}) => {
@@ -70,19 +69,25 @@ const DrawerScreen = ({navigation}) => {
             <Text style={{fontSize: 16, fontWeight: '700'}}>Menu</Text>
           </View>
           <TouchableOpacity
-            style={{alignItems: 'center', flex: 0.2}}
+            style={{
+              alignItems: 'center',
+              flex: 0.2,
+
+              paddingVertical: 19,
+            }}
             onPress={() => {
               navigation.closeDrawer();
             }}>
             <Icon name="close" size={20} color="black" />
           </TouchableOpacity>
         </View>
-        <DrawerItem lable="Home" navigateTo="Home" />
+        <DrawerItem lable="Home" navigateTo={['Home', 'DashBoard']} />
         <DrawerItem lable="Members" navigateTo={['Members', 'AllMembers']} />
         <DrawerItem
           lable="Add Members"
           navigateTo={['Members', 'AddMembers']}
         />
+        <DrawerItem lable="Payments" navigateTo={['Home', 'Payments']} />
         <DrawerItem lable="Logout" navigateTo="" />
       </View>
     </View>

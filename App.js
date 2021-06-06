@@ -8,7 +8,6 @@ import {getUserData} from './Storage';
 import {Provider as PaperProvider} from 'react-native-paper';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createDrawerNavigator} from '@react-navigation/drawer';
-
 import Member from './screens/Member';
 import BottomTab from './components/BottomTab';
 import Circles from './screens/Circles';
@@ -18,6 +17,8 @@ import {StatusBar} from 'react-native';
 import DrawerScreen from './screens/DrawerScreen';
 import Splash from './screens/Splash';
 import messaging from '@react-native-firebase/messaging';
+import Register from './screens/Register';
+import axios from './axios';
 
 // http://omba-app.ambicionestechnology.com/api/account/login
 //{username: "admin", password: "Pa$$w0rd"}
@@ -50,6 +51,47 @@ const CustomDrawer = () => {
 
 const Main = ({route}) => {
   const [LoggedIn, setLoggedIn] = useState(route?.params?.isLoggedin || false);
+
+  const [Udata, setUdata] = useState([]);
+  const UpdatePushToken = (token, jwtToken, userId) => {
+    axios({
+      url: '/account/updateDeviceToken/' + userId,
+
+      method: 'POST',
+      data: {deviceToken: token},
+      headers: {
+        'Content-Type': 'application/json',
+        authorization: 'Bearer ' + jwtToken,
+      },
+    }).then(res => {
+      console.log(res);
+    });
+  };
+  useEffect(() => {
+    getUserData().then(data => {
+      console.log(data);
+      setUdata(data);
+      if (data) {
+        messaging()
+          .getToken()
+          .then(token => {
+            console.log(token);
+            UpdatePushToken(token, data.token, data.id);
+            // return saveTokenToDatabase(token);
+          });
+      } else {
+        setUdata([]);
+      }
+    });
+
+    return messaging().onTokenRefresh(token => {
+      console.log(token);
+      if (Udata.length > 0) {
+        UpdatePushToken(token, Udata.token, Udata.id);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     console.log(route);
     getUserData().then(data => {
@@ -70,6 +112,7 @@ const Main = ({route}) => {
       ) : (
         <>
           <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Register" component={Register} />
         </>
       )}
     </Stack.Navigator>
@@ -85,26 +128,6 @@ const MainStack = () => {
 };
 
 const App = () => {
-  useEffect(() => {
-    // Get the device token
-    messaging()
-      .getToken()
-      .then(token => {
-        console.log(token);
-        // return saveTokenToDatabase(token);
-      });
-
-    // If using other push notification providers (ie Amazon SNS, etc)
-    // you may need to get the APNs token instead for iOS:
-    // if(Platform.OS == 'ios') { messaging().getAPNSToken().then(token => { return saveTokenToDatabase(token); }); }
-
-    // Listen to whether the token changes
-    return messaging().onTokenRefresh(token => {
-      console.log(token);
-
-      // saveTokenToDatabase(token);
-    });
-  }, []);
   return (
     <NavigationContainer>
       <PaperProvider>

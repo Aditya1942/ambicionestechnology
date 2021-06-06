@@ -7,7 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {Input} from 'react-native-elements';
+import {Image, Input} from 'react-native-elements';
 import {Button} from 'react-native-elements';
 import {setUserData} from '../Storage';
 import {TouchableOpacity} from 'react-native-gesture-handler';
@@ -85,11 +85,18 @@ const Login = ({navigation}) => {
         }}>
         <View>
           <View style={{justifyContent: 'center', alignItems: 'center'}}>
+            <Image
+              style={{
+                marginTop: 15,
+                height: 95,
+                width: 72,
+              }}
+              source={require('../assets/Logos/Logo_Final_B-01.png')}
+            />
             <Text
               style={{
                 fontSize: 45,
                 fontWeight: 'bold',
-                marginTop: 60,
               }}>
               Log in
             </Text>
@@ -139,7 +146,10 @@ const Login = ({navigation}) => {
                 flexDirection: 'row',
                 marginVertical: 20,
               }}>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate('Register');
+                }}>
                 <Text style={{color: '#1a66ff', fontSize: 16}}>
                   Register Now
                 </Text>
@@ -170,6 +180,7 @@ const Login = ({navigation}) => {
             width: width * 0.9,
             height: 60,
             backgroundColor: '#6236ff',
+            borderRadius: 20,
           }}
           titleStyle={{fontSize: 25}}
         />

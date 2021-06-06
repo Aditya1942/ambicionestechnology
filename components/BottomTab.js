@@ -44,8 +44,10 @@ const BottomTab = ({state, descriptors, navigation}) => {
           target: route.key,
         });
         if (!isFocused && !event.defaultPrevented) {
-          if (route.name === 'Member') {
-            navigation.navigate(route.name, {screen: 'AllMembers'});
+          if (route.name === 'Members') {
+            navigation.navigate('Members', {screen: 'AllMembers'});
+          } else if (route.name === 'Home') {
+            navigation.navigate('Home', {screen: 'DashBoard'});
           } else {
             navigation.navigate(route.name);
           }
@@ -60,9 +62,11 @@ const BottomTab = ({state, descriptors, navigation}) => {
           width: totalWidth / totalTabs,
         }}
         title={lable}
-        titleStyle={{color: 'white', fontSize: 13}}
+        titleStyle={{color: isFocused ? 'white' : '#c6c6c6', fontSize: 13}}
         iconContainerStyle={{flexDirection: 'column'}}
-        icon={<Icon name={icon} size={23} color="white" />}
+        icon={
+          <Icon name={icon} size={23} color={isFocused ? 'white' : '#c6c6c6'} />
+        }
       />
     );
   };
@@ -89,7 +93,7 @@ const BottomTab = ({state, descriptors, navigation}) => {
           styles.slider,
           {
             transform: [{translateX: translateValue}],
-            width: tabWidth,
+            width: tabWidth * 0.8,
           },
         ]}
       />

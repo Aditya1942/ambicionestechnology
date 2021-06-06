@@ -47,15 +47,14 @@ const Card = ({index, title, circle, mobile, status}) => {
 };
 const AllMembers = ({navigation}) => {
   const [MemberData, setMemberData] = useState([]);
-  const [userData, setUserData] = useState([]);
+  // const [userData, setUserData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [dataSource, setDataSource] = useState([]);
   const [offset, setOffset] = useState(1);
   const [isListEnd, setIsListEnd] = useState(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const getData = () => {
     getUserData().then(userdata => {
+      // setUserData(userdata);
       console.log(offset);
       if (!loading && !isListEnd) {
         console.log('getData', userdata);
@@ -143,46 +142,46 @@ const AllMembers = ({navigation}) => {
     </View>
   );
 };
-const AllAdmin = ({navigation}) => {
-  const [AdminData, setAdminData] = useState([]);
-  const [userData, setUserData] = useState([]);
+// const AllAdmin = ({navigation}) => {
+//   const [AdminData, setAdminData] = useState([]);
+//   const [userData, setUserData] = useState([]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      getUserData().then(userdata => {
-        setUserData(userdata);
-        axios({
-          url: '/users/GetMembers/' + userdata.id,
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            authorization: 'Bearer ' + userdata.token,
-          },
-        }).then(data => {
-          setAdminData(data.data);
-          console.log(data, navigation);
-        });
-      });
-    }, [navigation]),
-  );
+//   useFocusEffect(
+//     React.useCallback(() => {
+//       getUserData().then(userdata => {
+//         setUserData(userdata);
+//         axios({
+//           url: '/users/GetMembers/' + userdata.id,
+//           method: 'GET',
+//           headers: {
+//             'Content-Type': 'application/json',
+//             authorization: 'Bearer ' + userdata.token,
+//           },
+//         }).then(data => {
+//           setAdminData(data.data);
+//           console.log(data, navigation);
+//         });
+//       });
+//     }, [navigation]),
+//   );
 
-  return (
-    <ScrollView style={{padding: 20}}>
-      {AdminData.map((admin, i) => (
-        <Card
-          key={i}
-          index={i + 1}
-          title={admin.firstName + ' ' + admin.lastName}
-          circle={admin.circleName}
-          mobile={admin.mobile}
-          status={'pending'}
-        />
-      ))}
+//   return (
+//     <ScrollView style={{padding: 20}}>
+//       {AdminData.map((admin, i) => (
+//         <Card
+//           key={i}
+//           index={i + 1}
+//           title={admin.firstName + ' ' + admin.lastName}
+//           circle={admin.circleName}
+//           mobile={admin.mobile}
+//           status={'pending'}
+//         />
+//       ))}
 
-      <View style={{height: 200}} />
-    </ScrollView>
-  );
-};
+//       <View style={{height: 200}} />
+//     </ScrollView>
+//   );
+// };
 const Main = ({navigation}) => {
   const [translateValue] = React.useState(new Animated.Value(0));
   const [CurrentTab, setCurrentTab] = React.useState(0);

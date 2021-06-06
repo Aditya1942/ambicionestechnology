@@ -1,6 +1,6 @@
 import React, {useRef, useState} from 'react';
 import {
-  Button,
+  // Button,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -8,6 +8,8 @@ import {
   Text,
   View,
 } from 'react-native';
+import {Button, TextInput} from 'react-native-paper';
+
 import {Input} from 'react-native-elements';
 import LinearGradient from 'react-native-linear-gradient';
 import {Sizes} from '../components/const';
@@ -15,7 +17,7 @@ import CustomHeader from '../components/Header';
 import {Picker} from '@react-native-picker/picker';
 import {useFocusEffect} from '@react-navigation/core';
 import {getUserData} from '../Storage';
-import axios from '../axios';
+import axios, {CancelToken} from '../axios';
 import DropdownAlert from 'react-native-dropdownalert';
 
 const AddMember = ({navigation}) => {
@@ -128,7 +130,7 @@ const AddMember = ({navigation}) => {
           );
           setTimeout(() => {
             navigation.navigate('AllMembers');
-          }, 2000);
+          }, 1000);
         } else {
           dropDownAlertRef.current.alertWithType(
             'error',
@@ -155,11 +157,15 @@ const AddMember = ({navigation}) => {
   const [UserData, setUserData] = useState([]);
   useFocusEffect(
     React.useCallback(() => {
+      const source = CancelToken.source();
+
       getUserData().then(userdata => {
         setUserData(userdata);
         axios({
           url: '/users/GetCircles/' + userdata.id,
           method: 'GET',
+          cancelToken: source.token,
+
           headers: {
             'Content-Type': 'application/json',
             authorization: 'Bearer ' + userdata.token,
@@ -169,6 +175,9 @@ const AddMember = ({navigation}) => {
           console.log(data, navigation);
         });
       });
+      return () => {
+        source.cancel('hey yo! going too fast. take it easy');
+      };
     }, [navigation]),
   );
   const keyboardVerticalOffset = Platform.OS === 'ios' ? 40 : 0;
@@ -328,13 +337,16 @@ const AddMember = ({navigation}) => {
                 onSubmitEditing={onsubmitHandler}
                 errorMessage={''}
               />
+
               <Button
-                style={{borderRadius: 10}}
                 onPress={onsubmitHandler}
-                color="#82b1ff"
-                title="Submit"
-                type="outline"
-              />
+                mode="contained"
+                style={{
+                  marginHorizontal: 70,
+                  marginTop: 10,
+                }}>
+                Submit
+              </Button>
             </KeyboardAvoidingView>
             <View style={{height: 300}} />
           </ScrollView>

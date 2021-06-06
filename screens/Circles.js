@@ -5,7 +5,7 @@ import {Button, TextInput} from 'react-native-paper';
 import DropdownAlert from 'react-native-dropdownalert';
 import {Sizes} from '../components/const';
 import CustomHeader from '../components/Header';
-import axios from '../axios';
+import axios, {CancelToken} from '../axios';
 import {getUserData} from '../Storage';
 import {useFocusEffect} from '@react-navigation/core';
 import Modal from 'react-native-modal';
@@ -21,11 +21,15 @@ const Circles = () => {
   };
   useFocusEffect(
     React.useCallback(() => {
+      const source = CancelToken.source();
+
       getUserData().then(userdata => {
         setUserData(userdata);
         axios({
           url: '/users/GetCircles/' + userdata.id,
           method: 'GET',
+          cancelToken: source.token,
+
           headers: {
             'Content-Type': 'application/json',
             authorization: 'Bearer ' + userdata.token,
@@ -35,6 +39,9 @@ const Circles = () => {
           console.log(data, Update);
         });
       });
+      return () => {
+        source.cancel('hey yo! going too fast. take it easy');
+      };
     }, [Update]),
   );
 

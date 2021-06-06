@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
-import axios from '../axios';
+import axios, {CancelToken} from '../axios';
 import React, {useState} from 'react';
 import {SafeAreaView, ScrollView, Text, View} from 'react-native';
 import CustomHeader from '../components/Header';
@@ -43,7 +43,7 @@ const Payments = () => {
             {index})
             {` ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}
           </Text>
-          <Text style={TextStyle}> {body}</Text>
+          {/* <Text style={TextStyle}> {body}</Text> */}
         </View>
         <Text style={{alignSelf: 'center', color: 'red', fontSize: 20}}>
           {installment} Kr
@@ -56,12 +56,16 @@ const Payments = () => {
 
   useFocusEffect(
     React.useCallback(() => {
+      const source = CancelToken.source();
+
       getUserData().then(userdata => {
         console.log(userdata);
         setUserData(userdata);
         axios({
           url: '/users/GetPayments/' + userdata.id,
           method: 'GET',
+          cancelToken: source.token,
+
           headers: {
             'Content-Type': 'application/json',
             authorization: 'Bearer ' + userdata.token,
@@ -71,6 +75,9 @@ const Payments = () => {
           setPaymentData(data.data);
         });
       });
+      return () => {
+        source.cancel('hey yo! going too fast. take it easy');
+      };
     }, []),
   );
 
@@ -78,15 +85,25 @@ const Payments = () => {
     <SafeAreaView>
       <CustomHeader label="Payments" />
       <ScrollView style={{padding: 20}}>
-        {PaymentData.map((payment, i) => (
-          <Card
-            key={payment.id}
-            index={i + 1}
-            date={payment.created}
-            installment={payment.installment}
-            body={`AdminCommission ${payment.adminCommissionAmount} Kr,${payment.commissionPercentage}%`}
-          />
-        ))}
+        {PaymentData.length > 0 ? (
+          PaymentData.map((payment, i) => (
+            <Card
+              key={payment.id}
+              index={i + 1}
+              date={payment.created}
+              installment={payment.installment}
+              body={`AdminCommission ${payment.adminCommissionAmount} Kr,${payment.commissionPercentage}%`}
+            />
+          ))
+        ) : (
+          <View
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Text>No payment</Text>
+          </View>
+        )}
         <View style={{height: 200}} />
       </ScrollView>
     </SafeAreaView>

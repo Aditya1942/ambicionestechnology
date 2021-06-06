@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/FontAwesome5';
 import {createStackNavigator} from '@react-navigation/stack';
 import Payments from './Payments';
 import Modal from 'react-native-modal';
-import axios from '../axios';
+import axios, {CancelToken} from '../axios';
 import {useFocusEffect} from '@react-navigation/core';
 const Stack = createStackNavigator();
 
@@ -77,8 +77,8 @@ const TotalBalanceCard = ({UserData, navigation}) => {
             {`${UserData.firstName || ''} ${UserData.firstName || ''}`}
           </Text>
           <Text style={{fontSize: 18, fontWeight: '500'}}>
-            {UserData.email}
-            parmaraditya1942@gmail.com
+            {UserData.email || ''}
+            {/* parmaraditya1942@gmail.com */}
           </Text>
         </View>
         {/* <View>
@@ -123,8 +123,8 @@ const TotalBalanceCard = ({UserData, navigation}) => {
       <View style={{flex: 1}}>
         <Modal
           isVisible={isModalVisible}
-          animationIn="slideInUp"
-          animationOut="slideOutUp"
+          animationIn="bounceIn"
+          animationOut="bounceOut"
           onBackdropPress={() => setModalVisible(false)}>
           <View
             style={{
@@ -232,7 +232,7 @@ const Transactions = ({body, installment, date, index}) => {
           <Text style={{fontSize: 18, fontWeight: '600', color: '#27173e'}}>
             {` ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}{' '}
           </Text>
-          <Text style={{color: '#958d9e', fontSize: 16}}>{body}</Text>
+          {/* <Text style={{color: '#958d9e', fontSize: 16}}>{body}</Text> */}
         </View>
         <View style={{flex: 0.2, justifyContent: 'center'}}>
           <Text
@@ -253,11 +253,14 @@ const Circles = ({navigation}) => {
   const [circleData, setcircleData] = useState([]);
   useFocusEffect(
     React.useCallback(() => {
+      const source = CancelToken.source();
       getUserData().then(userdata => {
         navigation;
         axios({
           url: '/users/GetCircles/' + userdata.id,
           method: 'GET',
+          cancelToken: source.token,
+
           headers: {
             'Content-Type': 'application/json',
             authorization: 'Bearer ' + userdata.token,
@@ -267,6 +270,9 @@ const Circles = ({navigation}) => {
           console.log(data);
         });
       });
+      return () => {
+        source.cancel('hey yo! going too fast. take it easy');
+      };
     }, [navigation]),
   );
   const Circle = ({name}) => {
@@ -274,7 +280,7 @@ const Circles = ({navigation}) => {
       <View
         style={{
           backgroundColor: '#fff',
-          width: 120,
+          width: 100,
           borderRadius: 20,
           marginBottom: 10,
           marginHorizontal: 10,
@@ -290,15 +296,22 @@ const Circles = ({navigation}) => {
       </View>
     );
   };
-  return (
-    <View style={{height: 100, marginTop: 20}}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {circleData.map(circle => (
-          <Circle key={circle.id} name={circle.name} />
-        ))}
-      </ScrollView>
-    </View>
-  );
+  if (circleData.length > 0) {
+    return (
+      <View style={{height: 110, marginTop: 20}}>
+        <Text style={{fontSize: 20, fontWeight: 'bold', marginBottom: 10}}>
+          Circles
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {circleData.map(circle => (
+            <Circle key={circle.id} name={circle.name} />
+          ))}
+        </ScrollView>
+      </View>
+    );
+  } else {
+    return <View />;
+  }
 };
 
 const Dashboard = ({navigation}) => {
@@ -308,14 +321,15 @@ const Dashboard = ({navigation}) => {
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
+
   const getUserInfo = () => {
     getUserData()
       .then(data => {
-        console.log('userInfo From Home page', data);
+        console.log('userData From Home page', data);
 
         if (data) {
           axios({
-            url: '/users/admin',
+            url: '/users/' + data.username,
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -324,8 +338,7 @@ const Dashboard = ({navigation}) => {
           })
             .then(res => {
               const userData = res.data;
-              console.log('userInfo From Home page', userData);
-
+              console.log('userInfo From Home page ', userData);
               setUserInfo(userData);
               setUserData(userData);
               return data;
@@ -336,30 +349,34 @@ const Dashboard = ({navigation}) => {
       .catch(err => console.log(err));
     return 0;
   };
-  const getPaymentData = () => {
-    getUserData().then(userdata => {
-      console.log(userdata);
-      setUserData(userdata);
-      axios({
-        url: '/users/GetPayments/' + userdata.id,
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          authorization: 'Bearer ' + userdata.token,
-        },
-      }).then(data => {
-        console.log(data);
-        setPaymentData(data.data.splice(-5).reverse());
-      });
-    });
-  };
+
   useEffect(() => {
     getUserInfo();
   }, []);
   useFocusEffect(
     React.useCallback(() => {
-      getPaymentData();
+      const source = CancelToken.source();
+      // get paymemt data
+      getUserData().then(userdata => {
+        console.log(userdata);
+        axios({
+          url: '/users/GetPayments/' + userdata.id,
+          method: 'GET',
+          cancelToken: source.token,
+
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: 'Bearer ' + userdata.token,
+          },
+        }).then(data => {
+          console.log(data);
+          setPaymentData(data.data.splice(-5).reverse());
+        });
+      });
       navigation;
+      return () => {
+        source.cancel('hey yo! going too fast. take it easy');
+      };
     }, [navigation]),
   );
   return (
@@ -386,7 +403,6 @@ const Dashboard = ({navigation}) => {
             {/* <Cards /> */}
             <Circles />
             {/* Transactions */}
-            <Button title="Add new member" onPress={toggleModal} />
             <View
               style={{
                 marginVertical: 10,
@@ -395,7 +411,7 @@ const Dashboard = ({navigation}) => {
                 justifyContent: 'space-between',
               }}>
               <Text style={{fontSize: 20, fontWeight: 'bold'}}>
-                Transactions
+                Payment History
               </Text>
               <TouchableOpacity
                 onPress={() => {
@@ -411,16 +427,27 @@ const Dashboard = ({navigation}) => {
                 </Text>
               </TouchableOpacity>
             </View>
-            {PaymentData.map((payment, i) => (
-              <Transactions
-                key={payment.id}
-                index={i + 1}
-                date={payment.created}
-                installment={payment.installment}
-                body={`AdminCommission ${payment.adminCommissionAmount} Kr,${payment.commissionPercentage}%`}
-              />
-            ))}
+            {PaymentData.length > 0 ? (
+              PaymentData.map((payment, i) => (
+                <Transactions
+                  key={payment.id}
+                  index={i + 1}
+                  date={payment.created}
+                  installment={payment.installment}
+                  body={`AdminCommission ${payment.adminCommissionAmount} Kr,${payment.commissionPercentage}%`}
+                />
+              ))
+            ) : (
+              <View
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <Text>No payment</Text>
+              </View>
+            )}
           </View>
+          <Button title="Add new member" onPress={toggleModal} />
           <View
             style={{
               height: 100,
@@ -432,19 +459,59 @@ const Dashboard = ({navigation}) => {
           </View>
         </ScrollView>
       </View>
+      {/* popup modal  */}
       <View style={{flex: 1}}>
         <Modal
           isVisible={isModalVisible}
-          animationIn="bounceIn"
+          animationIn="slideInUp"
+          animationOut="slideOutUp"
           onBackdropPress={() => setModalVisible(false)}>
           <View
             style={{
               height: Sizes.ITEM_HEIGHT,
+              width: Sizes.ITEM_WIDTH * 2,
               backgroundColor: 'white',
               borderRadius: 10,
               padding: 10,
+              justifyContent: 'center',
+              alignItems: 'center',
+              alignSelf: 'center',
             }}>
-            <Text>Hello</Text>
+            <View style={{justifyContent: 'center', alignItems: 'center'}}>
+              <Text style={{fontSize: 17, marginBottom: 10}}>
+                Add New Member Now
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate('Members', {screen: 'AddMembers'});
+                }}
+                style={{justifyContent: 'center', alignItems: 'center'}}>
+                <View
+                  style={{
+                    backgroundColor: '#6236ff',
+                    height: 58,
+                    width: 58,
+                    borderRadius: 10,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <Text
+                    style={{
+                      fontSize: 30,
+                      color: 'white',
+                      position: 'absolute',
+                      right: 0,
+                      top: -8,
+                      zIndex: 1,
+                    }}>
+                    +
+                  </Text>
+                  <Icon name={'users'} size={30} color="white" />
+                </View>
+
+                {/* <Text style={{paddingTop: 15}}>{"Add"}</Text> */}
+              </TouchableOpacity>
+            </View>
           </View>
         </Modal>
       </View>
