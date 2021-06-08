@@ -18,7 +18,6 @@ const DrawerScreen = ({navigation}) => {
     });
   };
   const DrawerItem = ({lable, navigateTo}) => {
-    console.log(typeof navigateTo);
     const navigate = () => {
       if (navigateTo !== '') {
         if (typeof navigateTo === 'string') {
@@ -35,7 +34,6 @@ const DrawerScreen = ({navigation}) => {
               route.params = a;
             }
           });
-          console.log(route);
           navigation.navigate(navigateTo[0], route);
         }
       } else if (lable === 'Logout') {

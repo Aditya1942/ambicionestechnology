@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {View, StyleSheet, Animated, Dimensions} from 'react-native';
+import {View, StyleSheet, Animated} from 'react-native';
 import {Button} from 'react-native-elements';
 import {Sizes} from './const';
 import Icon from 'react-native-vector-icons/FontAwesome5';

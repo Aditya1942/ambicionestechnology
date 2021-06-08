@@ -1,21 +1,26 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Button,
+  Easing,
   SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
+  Animated,
 } from 'react-native';
 import {Sizes} from '../components/const';
 import CustomHeader from '../components/Header';
-import {getUserData, setUserInfo} from '../Storage';
+import {getUserData, getUserMember, setUserInfo} from '../Storage';
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import {createStackNavigator} from '@react-navigation/stack';
 import Payments from './Payments';
 import Modal from 'react-native-modal';
 import axios, {CancelToken} from '../axios';
 import {useFocusEffect} from '@react-navigation/core';
+import {ActivityIndicator} from 'react-native-paper';
+import {Avatar} from 'react-native-elements';
+
 const Stack = createStackNavigator();
 
 const TotalBalanceCard = ({UserData, navigation}) => {
@@ -59,7 +64,7 @@ const TotalBalanceCard = ({UserData, navigation}) => {
       style={{
         backgroundColor: '#fff',
         width: Sizes.width * 0.9,
-        padding: 30,
+        padding: 20,
         borderRadius: 20,
         elevation: 10,
       }}>
@@ -73,13 +78,19 @@ const TotalBalanceCard = ({UserData, navigation}) => {
           paddingBottom: 30,
         }}>
         <View>
-          <Text style={{fontSize: 30, fontWeight: '700'}}>
-            {`${UserData.firstName || ''} ${UserData.firstName || ''}`}
-          </Text>
-          <Text style={{fontSize: 18, fontWeight: '500'}}>
-            {UserData.email || ''}
-            {/* parmaraditya1942@gmail.com */}
-          </Text>
+          {(UserData.firstName || UserData.lastName) && (
+            <View>
+              <Text style={{fontSize: 15}}>Welcome,</Text>
+              <Text style={{fontSize: 30, fontWeight: '700'}}>
+                {`${UserData.firstName || ''} ${UserData.lastName || ''}`}
+              </Text>
+            </View>
+          )}
+          {UserData.email && (
+            <Text style={{fontSize: 18, fontWeight: '500'}}>
+              {UserData.email || ''}
+            </Text>
+          )}
         </View>
         {/* <View>
           <View
@@ -146,56 +157,56 @@ const TotalBalanceCard = ({UserData, navigation}) => {
   );
 };
 
-const Cards = () => {
-  const Card = ({title, value, valueColor = 'black'}) => {
-    return (
-      <View
-        style={{
-          backgroundColor: '#fff',
-          width: Sizes.width * 0.43,
-          borderRadius: 20,
-          marginBottom: 20,
-          paddingVertical: 20,
-          paddingHorizontal: 30,
-          elevation: 10,
-          shadowColor: '#000',
-          shadowOffset: {width: 0, height: 3},
-          shadowOpacity: 0.5,
-          shadowRadius: 5,
-        }}>
-        <View>
-          <Text
-            style={{
-              fontSize: 15,
-              color: '#958d9e',
-              fontWeight: '500',
-              marginBottom: 5,
-            }}>
-            {title}
-          </Text>
-          <Text style={{fontSize: 24, fontWeight: '700', color: valueColor}}>
-            {value}
-          </Text>
-        </View>
-      </View>
-    );
-  };
-  return (
-    <View
-      style={{
-        width: Sizes.width * 0.9,
-        marginTop: 30,
-        justifyContent: 'space-between',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-      }}>
-      <Card title="Income" value="$ 552.95" valueColor="#1dcc70" />
-      <Card title="Expenses" value="$ 86.45" valueColor="#ff396f" />
-      <Card title="Total Bills" value="$ 53.25" />
-      <Card title="Savings" value="$ 120.99" />
-    </View>
-  );
-};
+// const Cards = () => {
+//   const Card = ({title, value, valueColor = 'black'}) => {
+//     return (
+//       <View
+//         style={{
+//           backgroundColor: '#fff',
+//           width: Sizes.width * 0.43,
+//           borderRadius: 20,
+//           marginBottom: 20,
+//           paddingVertical: 20,
+//           paddingHorizontal: 30,
+//           elevation: 10,
+//           shadowColor: '#000',
+//           shadowOffset: {width: 0, height: 3},
+//           shadowOpacity: 0.5,
+//           shadowRadius: 5,
+//         }}>
+//         <View>
+//           <Text
+//             style={{
+//               fontSize: 15,
+//               color: '#958d9e',
+//               fontWeight: '500',
+//               marginBottom: 5,
+//             }}>
+//             {title}
+//           </Text>
+//           <Text style={{fontSize: 24, fontWeight: '700', color: valueColor}}>
+//             {value}
+//           </Text>
+//         </View>
+//       </View>
+//     );
+//   };
+//   return (
+//     <View
+//       style={{
+//         width: Sizes.width * 0.9,
+//         marginTop: 30,
+//         justifyContent: 'space-between',
+//         flexDirection: 'row',
+//         flexWrap: 'wrap',
+//       }}>
+//       <Card title="Income" value="$ 552.95" valueColor="#1dcc70" />
+//       <Card title="Expenses" value="$ 86.45" valueColor="#ff396f" />
+//       <Card title="Total Bills" value="$ 53.25" />
+//       <Card title="Savings" value="$ 120.99" />
+//     </View>
+//   );
+// };
 
 const Transactions = ({body, installment, date, index}) => {
   var d = new Date(date);
@@ -217,24 +228,30 @@ const Transactions = ({body, installment, date, index}) => {
     <View
       style={{
         width: Sizes.width * 0.9,
-        paddingVertical: 30,
-        paddingHorizontal: 20,
+        paddingVertical: 15,
+        paddingHorizontal: 10,
         borderRadius: 20,
         elevation: 10,
         marginBottom: 15,
         backgroundColor: '#fff',
       }}>
       <View style={{flexDirection: 'row'}}>
-        <View style={{flex: 0.1, justifyContent: 'center'}}>
-          <Text style={{fontSize: 18}}>{index})</Text>
+        <View style={{flex: 0.2, justifyContent: 'center'}}>
+          <Avatar
+            rounded
+            title={index}
+            overlayContainerStyle={{backgroundColor: '#01A7FB'}}
+          />
+          {/* <Text style={{fontSize: 18}}>{index})</Text> */}
         </View>
-        <View style={{flex: 0.8, justifyContent: 'center'}}>
+        <View style={{flex: 0.6, justifyContent: 'center'}}>
           <Text style={{fontSize: 18, fontWeight: '600', color: '#27173e'}}>
             {` ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}{' '}
           </Text>
           {/* <Text style={{color: '#958d9e', fontSize: 16}}>{body}</Text> */}
         </View>
-        <View style={{flex: 0.2, justifyContent: 'center'}}>
+        <View
+          style={{flex: 0.4, justifyContent: 'center', alignItems: 'flex-end'}}>
           <Text
             style={{
               color: installment < 0 ? '#ff396f' : '#27173e',
@@ -249,39 +266,15 @@ const Transactions = ({body, installment, date, index}) => {
   );
 };
 
-const Circles = ({navigation}) => {
-  const [circleData, setcircleData] = useState([]);
-  useFocusEffect(
-    React.useCallback(() => {
-      const source = CancelToken.source();
-      getUserData().then(userdata => {
-        navigation;
-        axios({
-          url: '/users/GetCircles/' + userdata.id,
-          method: 'GET',
-          cancelToken: source.token,
-
-          headers: {
-            'Content-Type': 'application/json',
-            authorization: 'Bearer ' + userdata.token,
-          },
-        }).then(data => {
-          setcircleData(data.data);
-          console.log(data);
-        });
-      });
-      return () => {
-        source.cancel('hey yo! going too fast. take it easy');
-      };
-    }, [navigation]),
-  );
-  const Circle = ({name}) => {
+const Circles = ({circleData}) => {
+  let CircleColors = ['#5F5CE7', '#FF365E', '#01A7FB', '#0A84FF'];
+  const Circle = ({name, color}) => {
     return (
       <View
         style={{
-          backgroundColor: '#fff',
-          width: 100,
-          borderRadius: 20,
+          backgroundColor: color,
+          width: 70,
+          borderRadius: 50,
           marginBottom: 10,
           marginHorizontal: 10,
           elevation: 10,
@@ -292,34 +285,37 @@ const Circles = ({navigation}) => {
           alignItems: 'center',
           justifyContent: 'center',
         }}>
-        <Text>{name}</Text>
+        <Text style={{color: 'white'}}>{name}</Text>
       </View>
     );
   };
-  if (circleData.length > 0) {
-    return (
-      <View style={{height: 110, marginTop: 20}}>
-        <Text style={{fontSize: 20, fontWeight: 'bold', marginBottom: 10}}>
-          Circles
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {circleData.map(circle => (
-            <Circle key={circle.id} name={circle.name} />
-          ))}
-        </ScrollView>
-      </View>
-    );
-  } else {
-    return <View />;
-  }
+  return (
+    <View style={{height: 110, marginTop: 20}}>
+      <Text style={{fontSize: 20, fontWeight: 'bold', marginBottom: 10}}>
+        Circles
+      </Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {circleData.map(circle => (
+          <Circle
+            key={circle.id}
+            name={circle.name}
+            color={CircleColors[Math.floor(Math.random() * 4)]}
+          />
+        ))}
+      </ScrollView>
+    </View>
+  );
 };
 
 const Dashboard = ({navigation}) => {
   const [UserData, setUserData] = useState([]);
-  const [isModalVisible, setModalVisible] = useState(false);
   const [PaymentData, setPaymentData] = useState([]);
+  const [circleData, setcircleData] = useState([]);
+  const [Loader, setLoader] = useState(true);
+  const [isMemberModalVisible, setMemberModalVisible] = useState(false);
+
   const toggleModal = () => {
-    setModalVisible(!isModalVisible);
+    setMemberModalVisible(!isMemberModalVisible);
   };
 
   const getUserInfo = () => {
@@ -356,11 +352,22 @@ const Dashboard = ({navigation}) => {
   useFocusEffect(
     React.useCallback(() => {
       const source = CancelToken.source();
-      // get paymemt data
+      setLoader(true);
+      // get member data
+      // getUserMember().then(MemberData => {
+      //   console.log('MemberData', MemberData);
+      //   if (MemberData && MemberData.length < 4) {
+      //     setTimeout(() => {
+      //       setMemberModalVisible(true);
+      //     }, 100);
+      //   } else {
+      //     setMemberModalVisible(false);
+      //   }
+      // });
+      // get Circle data
       getUserData().then(userdata => {
-        console.log(userdata);
         axios({
-          url: '/users/GetPayments/' + userdata.id,
+          url: '/users/GetCircles/' + userdata.id,
           method: 'GET',
           cancelToken: source.token,
 
@@ -368,20 +375,89 @@ const Dashboard = ({navigation}) => {
             'Content-Type': 'application/json',
             authorization: 'Bearer ' + userdata.token,
           },
-        }).then(data => {
-          console.log(data);
-          setPaymentData(data.data.splice(-5).reverse());
-        });
+        })
+          .then(data => {
+            setcircleData(data.data);
+          })
+          .then(() => {
+            // get paymemt data
+            axios({
+              url: '/users/GetPayments/' + userdata.id,
+              method: 'GET',
+              cancelToken: source.token,
+              headers: {
+                'Content-Type': 'application/json',
+                authorization: 'Bearer ' + userdata.token,
+              },
+            })
+              .then(data => {
+                setPaymentData(data.data.splice(-5).reverse());
+                setLoader(false);
+              })
+              .catch(e => {
+                console.log('Payment Data ERROR:', e);
+
+                setLoader(false);
+              });
+          })
+          .catch(err => {
+            console.log('Circle ERROR:', err);
+            setLoader(false);
+          });
       });
-      navigation;
+
       return () => {
+        setMemberModalVisible(false);
+
         source.cancel('hey yo! going too fast. take it easy');
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [navigation]),
   );
+
+  // const [shakeAnimation] = useState(new Animated.Value(0));
+
+  // const startAnimation = useCallback(() => {
+  //   shakeAnimation.setValue(0);
+  //   Animated.timing(shakeAnimation, {
+  //     toValue: 5,
+  //     velocity: 1,
+
+  //     duration: 1500,
+  //     easing: Easing.linear,
+  //     useNativeDriver: true,
+  //   }).start(() => {
+  //     shakeAnimation.setValue(0);
+  //   });
+  // }, [shakeAnimation]);
+  // const animatedStyles = {
+  //   transform: [
+  //     {
+  //       translateX: shakeAnimation.interpolate({
+  //         inputRange: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+  //         outputRange: [0, 10, -10, 10, -10, 0, 0, 0, 0, 0, 0],
+  //       }),
+  //     },
+  //   ],
+  // };
+
   return (
     <SafeAreaView>
       <CustomHeader label="Dashboard" />
+
+      {Loader && circleData.length <= 0 && PaymentData.length <= 0 && (
+        <View
+          style={{
+            position: 'absolute',
+            top: Sizes.height * 0.4,
+            left: '30%',
+            zIndex: 1,
+            width: '40%',
+            height: 150,
+          }}>
+          <ActivityIndicator size="large" color="red" />
+        </View>
+      )}
       <View style={{backgroundColor: '#f0f0f0', position: 'relative'}}>
         <ScrollView style={{zIndex: 5}}>
           <View
@@ -401,7 +477,7 @@ const Dashboard = ({navigation}) => {
             <TotalBalanceCard UserData={UserData} navigation={navigation} />
 
             {/* <Cards /> */}
-            <Circles />
+            {Circles.length > 0 && <Circles circleData={circleData} />}
             {/* Transactions */}
             <View
               style={{
@@ -447,7 +523,6 @@ const Dashboard = ({navigation}) => {
               </View>
             )}
           </View>
-          <Button title="Add new member" onPress={toggleModal} />
           <View
             style={{
               height: 100,
@@ -460,16 +535,17 @@ const Dashboard = ({navigation}) => {
         </ScrollView>
       </View>
       {/* popup modal  */}
-      <View style={{flex: 1}}>
+      {/* <View style={{flex: 1}}>
         <Modal
-          isVisible={isModalVisible}
+          isVisible={isMemberModalVisible}
           animationIn="slideInUp"
           animationOut="slideOutUp"
-          onBackdropPress={() => setModalVisible(false)}>
+          onBackdropPress={startAnimation}
+          onBackButtonPress={startAnimation}>
           <View
             style={{
               height: Sizes.ITEM_HEIGHT,
-              width: Sizes.ITEM_WIDTH * 2,
+              width: Sizes.ITEM_WIDTH * 2.5,
               backgroundColor: 'white',
               borderRadius: 10,
               padding: 10,
@@ -478,9 +554,12 @@ const Dashboard = ({navigation}) => {
               alignSelf: 'center',
             }}>
             <View style={{justifyContent: 'center', alignItems: 'center'}}>
-              <Text style={{fontSize: 17, marginBottom: 10}}>
-                Add New Member Now
-              </Text>
+              <Animated.View style={animatedStyles}>
+                <Text style={{fontSize: 17, marginBottom: 10}}>
+                  Add 2 New Member to continue
+                </Text>
+              </Animated.View>
+
               <TouchableOpacity
                 onPress={() => {
                   navigation.navigate('Members', {screen: 'AddMembers'});
@@ -509,12 +588,11 @@ const Dashboard = ({navigation}) => {
                   <Icon name={'users'} size={30} color="white" />
                 </View>
 
-                {/* <Text style={{paddingTop: 15}}>{"Add"}</Text> */}
               </TouchableOpacity>
             </View>
           </View>
         </Modal>
-      </View>
+      </View> */}
     </SafeAreaView>
   );
 };

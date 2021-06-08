@@ -1,22 +1,19 @@
 import {createStackNavigator} from '@react-navigation/stack';
 import React, {useState, useEffect} from 'react';
 import {
-  Animated,
+  // Animated,
   FlatList,
   SafeAreaView,
-  ScrollView,
   StyleSheet,
   Text,
-  TouchableHighlight,
   View,
-  VirtualizedList,
 } from 'react-native';
-import {Sizes} from '../components/const';
+// import {Sizes} from '../components/const';
 import CustomHeader from '../components/Header';
 import AddMember from './AddMember';
 import axios from '../axios';
 import {getUserData} from '../Storage';
-import {useFocusEffect} from '@react-navigation/core';
+// import {useFocusEffect} from '@react-navigation/core';
 import {ActivityIndicator} from 'react-native';
 
 const Stack = createStackNavigator();
@@ -183,41 +180,41 @@ const AllMembers = ({navigation}) => {
 //   );
 // };
 const Main = ({navigation}) => {
-  const [translateValue] = React.useState(new Animated.Value(0));
-  const [CurrentTab, setCurrentTab] = React.useState(0);
-  const tabWidth = Sizes.width / 2;
+  // const [translateValue] = React.useState(new Animated.Value(0));
+  // const [CurrentTab, setCurrentTab] = React.useState(0);
+  // const tabWidth = Sizes.width / 2;
 
-  const animateSlider = React.useCallback(
-    index => {
-      Animated.spring(translateValue, {
-        toValue: index * tabWidth,
-        velocity: 10,
-        useNativeDriver: true,
-      }).start();
-    },
-    [tabWidth, translateValue],
-  );
-  const Tab = ({children, index}) => {
-    return (
-      <TouchableHighlight
-        activeOpacity={0.6}
-        underlayColor="#DDDDDD"
-        onPress={() => {
-          setCurrentTab(index);
-          console.log('LOL');
-        }}
-        style={style.tabView}>
-        {children}
-      </TouchableHighlight>
-    );
-  };
+  // const animateSlider = React.useCallback(
+  //   index => {
+  //     Animated.spring(translateValue, {
+  //       toValue: index * tabWidth,
+  //       velocity: 10,
+  //       useNativeDriver: true,
+  //     }).start();
+  //   },
+  //   [tabWidth, translateValue],
+  // );
+  // const Tab = ({children, index}) => {
+  //   return (
+  //     <TouchableHighlight
+  //       activeOpacity={0.6}
+  //       underlayColor="#DDDDDD"
+  //       onPress={() => {
+  //         setCurrentTab(index);
+  //         console.log('LOL');
+  //       }}
+  //       style={style.tabView}>
+  //       {children}
+  //     </TouchableHighlight>
+  //   );
+  // };
 
-  React.useEffect(() => {
-    animateSlider(CurrentTab);
-  }, [CurrentTab, animateSlider]);
+  // React.useEffect(() => {
+  //   animateSlider(CurrentTab);
+  // }, [CurrentTab, animateSlider]);
 
   return (
-    <View>
+    <SafeAreaView>
       <CustomHeader label="Members" />
       {/* <View style={style.tabsView}>
         <Animated.View
@@ -241,7 +238,7 @@ const Main = ({navigation}) => {
       {/* ) : (
         <AllAdmin navigation={navigation} />
       )} */}
-    </View>
+    </SafeAreaView>
   );
 };
 

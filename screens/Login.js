@@ -9,7 +9,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Image, Input} from 'react-native-elements';
 import {Button} from 'react-native-elements';
-import {setUserData} from '../Storage';
+import {setUserData, setUserMember} from '../Storage';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {Sizes} from '../components/const';
 import axios from '../axios';
@@ -38,9 +38,9 @@ const Login = ({navigation}) => {
         // Some Code if fetching is successful
         let responseJson = response.data;
         console.log(responseJson);
-        setLoading(false);
         console.log(response);
         if (response.status !== 200) {
+          setLoading(false);
           if (responseJson.title === 'Unauthorized') {
             dropDownAlertRef.current.alertWithType(
               'error',
@@ -56,9 +56,20 @@ const Login = ({navigation}) => {
           }
         } else if (response.status === 200) {
           setUserData(responseJson).then(() => {
-            navigation.reset({
-              routes: [{name: 'HomeScreen'}],
-            });
+            if (responseJson) {
+              axios({
+                url: `/users/GetMembers/${responseJson.id}?pageNumber=1&pageSize=5&predicate=liked`,
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  authorization: 'Bearer ' + responseJson.token,
+                },
+              }).then(data => {
+                console.log('getMember', data, navigation);
+                setUserMember(data.data);
+                navigation.replace('HomeScreen');
+              });
+            }
           });
         } else {
           dropDownAlertRef.current.alertWithType(
@@ -88,10 +99,10 @@ const Login = ({navigation}) => {
             <Image
               style={{
                 marginTop: 15,
-                height: 95,
-                width: 72,
+                height: 70,
+                width: 70,
               }}
-              source={require('../assets/Logos/Logo_Final_B-01.png')}
+              source={require('../assets/Logos/red-croped.png')}
             />
             <Text
               style={{
@@ -177,10 +188,10 @@ const Login = ({navigation}) => {
           onPress={HandleSubmit}
           loading={Loading}
           buttonStyle={{
-            width: width * 0.9,
-            height: 60,
+            width: width * 0.8,
+            height: 50,
             backgroundColor: '#6236ff',
-            borderRadius: 20,
+            borderRadius: 15,
           }}
           titleStyle={{fontSize: 25}}
         />

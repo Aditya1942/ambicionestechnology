@@ -22,12 +22,12 @@ const Payments = () => {
       'Nov',
       'Dec',
     ];
-    const TextStyle = {
-      marginLeft: 10,
-      color: '#6c6573',
-      fontWeight: '500',
-      fontSize: 16,
-    };
+    // const TextStyle = {
+    //   marginLeft: 10,
+    //   color: '#6c6573',
+    //   fontWeight: '500',
+    //   fontSize: 16,
+    // };
     return (
       <View
         style={{
@@ -51,7 +51,7 @@ const Payments = () => {
       </View>
     );
   };
-  const [userData, setUserData] = useState([]);
+  // const [userData, setUserData] = useState([]);
   const [PaymentData, setPaymentData] = useState([]);
 
   useFocusEffect(
@@ -60,7 +60,7 @@ const Payments = () => {
 
       getUserData().then(userdata => {
         console.log(userdata);
-        setUserData(userdata);
+        // setUserData(userdata);
         axios({
           url: '/users/GetPayments/' + userdata.id,
           method: 'GET',

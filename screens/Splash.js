@@ -2,18 +2,36 @@ import Login from './Login';
 import Video from 'react-native-video';
 import React, {useEffect, useState} from 'react';
 import {StatusBar, View} from 'react-native';
-import {getUserData} from '../Storage';
+import {getUserData, setUserMember} from '../Storage';
+import axios, {CancelToken} from '../axios';
 
 const Splash = ({navigation}) => {
   useEffect(() => {
     console.log(navigation);
     let LoggedIn = false;
     getUserData().then(data => {
+      const source = CancelToken.source();
+
       console.log(data);
       if (!data) {
         LoggedIn = false; //
       } else {
         LoggedIn = true; //
+      }
+      if (LoggedIn) {
+        axios({
+          url: `/users/GetMembers/${data.id}?pageNumber=1&pageSize=5&predicate=liked`,
+          method: 'GET',
+          cancelToken: source.token,
+
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: 'Bearer ' + data.token,
+          },
+        }).then(data => {
+          console.log('getMember', data);
+          setUserMember(data.data);
+        });
       }
     });
     setTimeout(() => {

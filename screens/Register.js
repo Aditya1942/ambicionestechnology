@@ -4,14 +4,11 @@ import {
   Text,
   View,
   KeyboardAvoidingView,
-  Alert,
   ScrollView,
   Platform,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import {Image, Input} from 'react-native-elements';
-import {Button} from 'react-native-elements';
-import {setUserData} from '../Storage';
+import {Image, Input, Button} from 'react-native-elements';
+import {setUserData, setUserMember} from '../Storage';
 import {TouchableOpacity} from 'react-native-gesture-handler';
 import {Sizes} from '../components/const';
 import axios from '../axios';
@@ -28,7 +25,6 @@ const Register = ({navigation}) => {
   const [Password, setPassword] = useState('');
   const [ConfirmPassword, setConfirmPassword] = useState('');
 
-  const FirstnameRef = useRef();
   const LastnameRef = useRef();
   const UserNameRef = useRef();
   const EmailRef = useRef();
@@ -112,9 +108,22 @@ const Register = ({navigation}) => {
             }
           } else if (response.status === 200) {
             setUserData(responseJson).then(() => {
-              navigation.reset({
-                routes: [{name: 'HomeScreen'}],
-              });
+              if (responseJson) {
+                axios({
+                  url: `/users/GetMembers/${responseJson.id}?pageNumber=1&pageSize=5&predicate=liked`,
+                  method: 'GET',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    authorization: 'Bearer ' + responseJson.token,
+                  },
+                }).then(data => {
+                  console.log('getMember', data);
+                  setUserMember(data.data);
+                  navigation.reset({
+                    routes: [{name: 'HomeScreen'}],
+                  });
+                });
+              }
             });
           }
         })
@@ -139,10 +148,10 @@ const Register = ({navigation}) => {
             <Image
               style={{
                 marginTop: 15,
-                height: 95,
-                width: 72,
+                height: 70,
+                width: 70,
               }}
-              source={require('../assets/Logos/Logo_Final_B-01.png')}
+              source={require('../assets/Logos/red-croped.png')}
             />
             <Text
               style={{
@@ -160,40 +169,42 @@ const Register = ({navigation}) => {
                 marginTop: 30,
                 padding: 10,
               }}>
-              <Input
-                placeholder="FirstName"
-                value={Firstname}
-                onChangeText={value => setFirstname(value)}
-                inputStyle={{color: 'black'}}
-                containerStyle={{marginBottom: 10}}
-                clearButtonMode={'while-editing'}
-                returnKeyLabel={'next'}
-                returnKeyType={'next'}
-                onSubmitEditing={() => {
-                  LastnameRef.current.focus();
-                }}
-              />
-              <Input
-                placeholder="LastName"
-                value={Lastname}
-                ref={LastnameRef}
-                onChangeText={value => setLastname(value)}
-                inputStyle={{color: 'black'}}
-                containerStyle={{marginBottom: 10}}
-                clearButtonMode={'while-editing'}
-                returnKeyLabel={'next'}
-                returnKeyType={'next'}
-                onSubmitEditing={() => {
-                  UserNameRef.current.focus();
-                }}
-              />
+              <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
+                <Input
+                  placeholder="FirstName"
+                  value={Firstname}
+                  onChangeText={value => setFirstname(value)}
+                  inputStyle={{color: 'black'}}
+                  containerStyle={{marginBottom: 5, flex: 0.5}}
+                  clearButtonMode={'while-editing'}
+                  returnKeyLabel={'next'}
+                  returnKeyType={'next'}
+                  onSubmitEditing={() => {
+                    LastnameRef.current.focus();
+                  }}
+                />
+                <Input
+                  placeholder="LastName"
+                  value={Lastname}
+                  ref={LastnameRef}
+                  onChangeText={value => setLastname(value)}
+                  inputStyle={{color: 'black'}}
+                  containerStyle={{marginBottom: 5, flex: 0.5}}
+                  clearButtonMode={'while-editing'}
+                  returnKeyLabel={'next'}
+                  returnKeyType={'next'}
+                  onSubmitEditing={() => {
+                    UserNameRef.current.focus();
+                  }}
+                />
+              </View>
               <Input
                 placeholder="UserName"
                 value={UserName}
                 ref={UserNameRef}
                 onChangeText={value => setUserName(value)}
                 inputStyle={{color: 'black'}}
-                containerStyle={{marginBottom: 10}}
+                containerStyle={{marginBottom: 5}}
                 clearButtonMode={'while-editing'}
                 returnKeyLabel={'next'}
                 returnKeyType={'next'}
@@ -207,7 +218,7 @@ const Register = ({navigation}) => {
                 ref={EmailRef}
                 onChangeText={value => setEmail(value)}
                 inputStyle={{color: 'black'}}
-                containerStyle={{marginBottom: 10}}
+                containerStyle={{marginBottom: 5}}
                 textContentType={'emailAddress'}
                 autoCompleteType={'email'}
                 keyboardType={'email-address'}
@@ -224,7 +235,7 @@ const Register = ({navigation}) => {
                 ref={MobileRef}
                 onChangeText={value => setMobile(value)}
                 inputStyle={{color: 'black'}}
-                containerStyle={{marginBottom: 10}}
+                containerStyle={{marginBottom: 5}}
                 keyboardType={
                   Platform.OS === 'android' ? 'numeric' : 'number-pad'
                 }
@@ -240,7 +251,7 @@ const Register = ({navigation}) => {
                 ref={CityRef}
                 onChangeText={value => setCity(value)}
                 inputStyle={{color: 'black'}}
-                containerStyle={{marginBottom: 10}}
+                containerStyle={{marginBottom: 5}}
                 clearButtonMode={'while-editing'}
                 returnKeyLabel={'next'}
                 returnKeyType={'next'}
@@ -269,7 +280,7 @@ const Register = ({navigation}) => {
                 placeholder="Confirm Password"
                 value={ConfirmPassword}
                 inputStyle={{color: 'black'}}
-                containerStyle={{marginBottom: 10}}
+                containerStyle={{marginBottom: 5}}
                 textContentType={'password'}
                 autoCompleteType={'password'}
                 clearButtonMode={'while-editing'}
@@ -281,23 +292,17 @@ const Register = ({navigation}) => {
                 onSubmitEditing={HandleSubmit}
               />
             </View>
-            <View
-              style={{
-                justifyContent: 'space-between',
-                flexDirection: 'row',
-                marginVertical: 20,
+            <TouchableOpacity
+              onPress={() => {
+                if (navigation.canGoBack()) navigation.goBack();
+                else navigation.replace('Login');
               }}>
-              <TouchableOpacity
-                onPress={() => {
-                  if (navigation.canGoBack()) navigation.goBack();
-                  else navigation.replace('Login');
-                }}>
-                <Text style={{color: '#1a66ff', fontSize: 16}}>
-                  Already have an Account?
-                </Text>
-              </TouchableOpacity>
-            </View>
+              <Text style={{color: '#1a66ff', fontSize: 16}}>
+                Already have an Account?
+              </Text>
+            </TouchableOpacity>
           </KeyboardAvoidingView>
+          <View style={{height: 150}} />
         </ScrollView>
       </View>
       <View
@@ -305,22 +310,60 @@ const Register = ({navigation}) => {
           position: 'absolute',
           width: width,
           bottom: 0,
-          marginVertical: 20,
+          marginTop: 0,
+
           justifyContent: 'center',
-          alignItems: 'center',
+          backgroundColor: '#f0f0f0',
         }}>
-        <Button
-          title="continue"
-          onPress={HandleSubmit}
-          loading={Loading}
-          buttonStyle={{
-            width: width * 0.9,
-            height: 60,
-            backgroundColor: '#6236ff',
-            borderRadius: 20,
-          }}
-          titleStyle={{fontSize: 25}}
-        />
+        <View
+          style={{
+            justifyContent: 'space-between',
+            flexDirection: 'column',
+            marginBottom: 10,
+            alignItems: 'center',
+          }}>
+          <View style={{alignSelf: 'center', marginBottom: 10}}>
+            <Button
+              title="Register"
+              onPress={HandleSubmit}
+              loading={Loading}
+              buttonStyle={{
+                width: width * 0.8,
+                height: 50,
+                backgroundColor: '#6236ff',
+                borderRadius: 15,
+              }}
+              titleStyle={{fontSize: 25}}
+            />
+          </View>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              alignSelf: 'center',
+              marginBottom: 10,
+              paddingHorizontal: 15,
+            }}>
+            <Text style={{fontSize: 13}}>
+              By creating an account, I accept the
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('Terms');
+              }}>
+              <Text style={{color: '#5d8ed5', fontSize: 13}}>
+                {' Terms & Conditions '}
+              </Text>
+            </TouchableOpacity>
+            <Text>And</Text>
+            <TouchableOpacity>
+              <Text style={{color: '#5d8ed5', fontSize: 13}}>
+                {' Privacy Policy'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
       <DropdownAlert ref={dropDownAlertRef} />
     </SafeAreaView>

@@ -1,5 +1,5 @@
 import React, {useRef, useState} from 'react';
-import {SafeAreaView, ScrollView, Text, View} from 'react-native';
+import {SafeAreaView, ScrollView, View} from 'react-native';
 import {Avatar, ListItem} from 'react-native-elements';
 import {Button, TextInput} from 'react-native-paper';
 import DropdownAlert from 'react-native-dropdownalert';
@@ -22,7 +22,6 @@ const Circles = () => {
   useFocusEffect(
     React.useCallback(() => {
       const source = CancelToken.source();
-
       getUserData().then(userdata => {
         setUserData(userdata);
         axios({
@@ -107,7 +106,8 @@ const Circles = () => {
       <View style={{flex: 1}}>
         <Modal
           isVisible={isModalVisible}
-          animationIn="bounceIn"
+          animationIn="slideInUp"
+          animationOut="slideOutUp"
           onBackdropPress={() => setModalVisible(false)}>
           <View
             style={{

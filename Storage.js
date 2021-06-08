@@ -35,3 +35,21 @@ export const getUserInfo = async () => {
     throw e;
   }
 };
+export const setUserMember = async value => {
+  try {
+    const jsonValue = JSON.stringify(value);
+    await AsyncStorage.setItem('@userMember', jsonValue);
+  } catch (e) {
+    // saving error
+    throw e;
+  }
+};
+export const getUserMember = async () => {
+  try {
+    const jsonValue = await AsyncStorage.getItem('@userMember');
+    return jsonValue != null ? JSON.parse(jsonValue) : null;
+  } catch (e) {
+    // error reading value
+    throw e;
+  }
+};

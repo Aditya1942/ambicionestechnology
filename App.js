@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import 'react-native-gesture-handler';
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, useFocusEffect} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import Home from './screens/Home';
 import Login from './screens/Login';
@@ -18,7 +18,8 @@ import DrawerScreen from './screens/DrawerScreen';
 import Splash from './screens/Splash';
 import messaging from '@react-native-firebase/messaging';
 import Register from './screens/Register';
-import axios from './axios';
+import axios, {CancelToken} from './axios';
+import T_and_C from './screens/T_and_C';
 
 // http://omba-app.ambicionestechnology.com/api/account/login
 //{username: "admin", password: "Pa$$w0rd"}
@@ -49,9 +50,10 @@ const CustomDrawer = () => {
   );
 };
 
-const Main = ({route}) => {
-  const [LoggedIn, setLoggedIn] = useState(route?.params?.isLoggedin || false);
-
+const Main = ({navigation, route}) => {
+  const [LoggedIn, setLoggedIn] = useState(
+    route.params !== undefined ? route.params.isLoggedin : true,
+  );
   const [Udata, setUdata] = useState([]);
   const UpdatePushToken = (token, jwtToken, userId) => {
     axios({
@@ -68,21 +70,22 @@ const Main = ({route}) => {
     });
   };
   useEffect(() => {
-    getUserData().then(data => {
-      console.log(data);
-      setUdata(data);
-      if (data) {
-        messaging()
-          .getToken()
-          .then(token => {
-            console.log(token);
-            UpdatePushToken(token, data.token, data.id);
-            // return saveTokenToDatabase(token);
-          });
-      } else {
-        setUdata([]);
-      }
-    });
+    if (LoggedIn)
+      getUserData().then(data => {
+        console.log(data);
+        setUdata(data);
+        if (data) {
+          messaging()
+            .getToken()
+            .then(token => {
+              console.log(token);
+              UpdatePushToken(token, data.token, data.id);
+              // return saveTokenToDatabase(token);
+            });
+        } else {
+          setUdata([]);
+        }
+      });
 
     return messaging().onTokenRefresh(token => {
       console.log(token);
@@ -103,6 +106,7 @@ const Main = ({route}) => {
       }
     });
   }, [route]);
+
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
       {LoggedIn ? (
@@ -113,6 +117,7 @@ const Main = ({route}) => {
         <>
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="Register" component={Register} />
+          <Stack.Screen name="Terms" component={T_and_C} />
         </>
       )}
     </Stack.Navigator>
