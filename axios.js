@@ -10,6 +10,3 @@ const instance = axios.create({
 export const CancelToken = axios.CancelToken;
 
 export default instance;
-
-// https://mighty-bastion-04883.herokuapp.com
-// http://192.168.1.172:4000

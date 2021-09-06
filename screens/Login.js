@@ -82,7 +82,7 @@ const Login = ({navigation}) => {
       .catch(error => {
         console.log(error);
         setLoading(false);
-
+        dropDownAlertRef.current.alertWithType('error', 'Error', error.message);
         // Some Code if fetching is failed
       });
   };
